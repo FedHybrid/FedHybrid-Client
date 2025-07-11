@@ -1,8 +1,14 @@
 'use client'
 
+import { BarChart3, Users } from "lucide-react"
+import MainButton from "@/components/common/Button"
+import FederatedLearningDiagram from "@/components/home/FederatedLearningDiagram"
+import { useRouter } from 'next/navigation'
 import styled from "styled-components"
 
 export default function Home() {
+  const router = useRouter()
+
   return (
     <Container>
       <MainTitleWrapper>
@@ -11,8 +17,27 @@ export default function Home() {
           <Brid>Brid</Brid> Demonstration
         </MainTitle>
       </MainTitleWrapper>
+
+      <DiagramWrapper>
+        <DiagramBox>
+          <FederatedLearningDiagram />
+        </DiagramBox>
+      </DiagramWrapper>
+
+      <ButtonGrid>
+        <MainButton
+          icon={<BarChart3 size={40} color="#1e3a8a"/>}
+          label="대시보드"
+          onClick={() => router.push('/supabase/dashboard')}
+        />
+        <MainButton
+          icon={<Users size={40} color="#1e3a8a"/>}
+          label="팀 소개"
+          onClick={() => router.push('/team')}
+        />
+      </ButtonGrid>
     </Container>
-  );
+  )
 }
 
 const Container = styled.div`
@@ -35,7 +60,7 @@ const MainTitle = styled.h1`
   }
 
   font-weight: 700;
-  color: #FFF;
+  color: #111827;
   margin-bottom: 1rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `
@@ -46,4 +71,30 @@ const Hy = styled.span`
 
 const Brid = styled.span`
   color: #2563eb;
+`
+
+const DiagramWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4rem;
+`
+
+const DiagramBox = styled.div`
+  background-color: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+`
+
+const ButtonGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 64rem;
+  margin: 0 auto;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `

@@ -1,13 +1,13 @@
 'use client'
 
 import styled from "styled-components";
-import MeInfo from '@/components/MeInfo'
 
-export default function Home() {
+export default function Team() {
   return (
     <Container>
-      <Title>대시보드</Title>
-      <MeInfo />
+      <Content>
+        <Title>팀 소개</Title>
+      </Content>
     </Container>
   )
 }
@@ -18,6 +18,11 @@ const Container = styled.div`
   padding: 2rem 2rem;
   background-color: #f9fafb;
   `
+
+const Content = styled.div`
+  width: 100%;
+  margin: 0 auto;
+`
 
 const Title = styled.h1`
   font-size: 2.25rem;
