@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import './AuthForm.css'
 
 export default function AuthForm() {
   const [email, setEmail] = useState('')
@@ -21,13 +22,16 @@ export default function AuthForm() {
   }
 
   return (
-    <div>
-      <form onSubmit={handleLogin}>
+<div className="auth-container">
+    <div className="auth-wrapper"> {/* ✅ 감싸는 래퍼 추가 */}
+      <form onSubmit={handleLogin} className="auth-form">
+        <h2 className="auth-title">로그인</h2>
         <input
           value={email}
           onChange={e => setEmail(e.target.value)}
           placeholder="Email"
           autoComplete="username"
+          className="auth-input"
         />
         <input
           value={password}
@@ -35,9 +39,14 @@ export default function AuthForm() {
           type="password"
           placeholder="Password"
           autoComplete="current-password"
+          className="auth-input"
         />
-        <button type="submit">로그인</button>
+        <button type="submit" className="auth-button">로그인</button>
       </form>
+      <div className="signup-link" onClick={() => router.push('/supabase/signup')}>
+        회원가입하기
+      </div>
     </div>
+  </div>
   )
 }
