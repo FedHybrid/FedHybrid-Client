@@ -52,13 +52,13 @@ export default function About() {
         </div>
       </Section>
 
-      <Section>
+      <ButtonSection>
         <ButtonWrapper>
             <StyledButton onClick={() => router.push('/supabase/dashboard')}>
               FedHB 성능 바로 확인하기
               </StyledButton>
         </ButtonWrapper>
-      </Section>
+      </ButtonSection>
     </PageWrapper>
   )
 }
@@ -69,7 +69,11 @@ const PageWrapper = styled.div`
 `;
 
 const Section = styled.section<{ bg?: string }>`
-  padding: 5rem 1.5rem;
+  padding: 1rem 1.5rem;
+`;
+
+const ButtonSection = styled.section<{ bg?: string }>`
+  padding: 3rem 1.5rem;
 `;
 
 const CenteredContainer = styled.div`
