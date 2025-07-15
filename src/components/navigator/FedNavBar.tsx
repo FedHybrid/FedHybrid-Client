@@ -53,7 +53,7 @@ export default function FedNavBar() {
           <span className="nav-divider">|</span>
           <Link href="/supabase/dashboard">대시보드</Link>
           <span className="nav-divider">|</span>
-          <Link href="/team">팀 소개</Link>
+          <Link href="/instance">인스턴스</Link>
           <span className="nav-divider">|</span>
           {user ? (
                  <UserDropdown user={user} onClick={handleLogout}/>          

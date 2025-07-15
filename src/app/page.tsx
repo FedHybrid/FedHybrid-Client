@@ -1,6 +1,6 @@
 'use client'
 
-import { BarChart3, Users } from "lucide-react"
+import { BarChart3, List } from "lucide-react"
 import MainButton from "@/components/common/Button"
 import FederatedLearningDiagram from "@/components/home/FederatedLearningDiagram"
 import { useRouter } from 'next/navigation'
@@ -31,9 +31,9 @@ export default function Home() {
           onClick={() => router.push('/supabase/dashboard')}
         />
         <MainButton
-          icon={<Users size={40} color="#1e3a8a"/>}
-          label="팀 소개"
-          onClick={() => router.push('/team')}
+          icon={<List size={40} color="#1e3a8a"/>}
+          label="인스턴스"
+          onClick={() => router.push('/instance')}
         />
       </ButtonGrid>
     </Container>
