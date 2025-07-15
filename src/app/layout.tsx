@@ -1,6 +1,6 @@
 import { Inter } from "next/font/google"
-import Link from "next/link"
 import GlobalStyles from '@/styles/GlobalStyles'
+import FedNavBar from "@/components/navigator/FedNavBar";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -14,34 +14,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  
   return (
     <html lang="ko">
   <body className={inter.className}>
     <GlobalStyles />
-
-    <nav>
-      <div className="container">
-        <div className="logo-group">
-          <Link href="/">
-            <h1>
-              <span className="logo-f">Fed</span>
-              <span className="logo-h">H</span>
-              <span className="logo-b">B</span>
-            </h1>
-          </Link>
-        </div>
-        <div className="nav-menu">
-          <Link href="/about">FedHB 소개</Link>
-          <span className="nav-divider">|</span>
-          <Link href="/supabase/dashboard">대시보드</Link>
-          <span className="nav-divider">|</span>
-          <Link href="/team">팀 소개</Link>
-          <span className="nav-divider">|</span>
-          <Link href="/supabase/login">로그인</Link>
-        </div>
-      </div>
-    </nav>
-
+    <FedNavBar/>
     <main>{children}</main>
   </body>
 </html>
