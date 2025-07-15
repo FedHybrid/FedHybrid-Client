@@ -2,11 +2,11 @@
 
 import styled from "styled-components";
 
-export default function Team() {
+export default function Instance() {
   return (
     <Container>
       <Content>
-        <Title>팀 소개</Title>
+        <Title>인스턴스 리스트 조회</Title>
       </Content>
     </Container>
   )
