@@ -3,7 +3,7 @@ import AuthForm from '@/components/auth/AuthForm'
 export default function Home() {
   return (
     <main>
-      <h1>로그인</h1>
+      <h1>테스트</h1>
       <AuthForm />
     </main>
   )
