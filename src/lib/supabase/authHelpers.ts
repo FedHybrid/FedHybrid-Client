@@ -8,15 +8,22 @@ export type AuthResult = {
 }
 
 /** authorize 라이브러리 함수에서만 사용하는 user 테이블 및 profiles 테이블 조회 담당 서브루틴  */
-async function getUserAndProfile(supabase: any, token: string): Promise<{ profile: any; user: any; } | null> {
+async function getUserAndProfileFromCookie(supabase: any): Promise<{ profile: any; user: any; } | null> {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) return null;
+    const { data: profile, error } = await supabase.from("profiles").select().eq('id', user.id).single();
+    if (error) return null;
+    return { user, profile };
+}
+
+/** 쿠키로 조회하지 못하는 경우(테스트 등) 호출되는 토큰 기반 조회 담당 서브루틴  */
+async function getUserAndProfileWithToken(supabase: any, token: string): Promise<{ profile: any; user: any; } | null> {
     // 토큰으로 supabase에서 사용자 반환
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) return null;
-    // 사용자 id로 supabase에서 프로필 조회
     const { data: profile, error } = await supabase.from("profiles").select().eq('id', user.id).single();
     console.log(profile.service_role);
     if (error) return null;
-
     return { user, profile };
 }
 
@@ -26,11 +33,13 @@ export async function authorize(request: Request, supabase: any, role?: string):
     const NextResNoProf = NextResponse.json({ error: '사용자 권한 정보를 조회할 수 없습니다.' }, { status: 403 });
     const NextResNoPerm = NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 });
 
-    const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-    if (!token) return { granted: false, response: NextResNoAuth };
-
-    const uap = await getUserAndProfile(supabase, token);
-    if (!uap) return { granted: false, response: NextResNoProf };
+    let uap = await getUserAndProfileFromCookie(supabase);
+    if (!uap) {
+        const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+        if (!token) return { granted: false, response: NextResNoAuth };
+        uap = await getUserAndProfileWithToken(supabase, token);
+        if (!uap) return { granted: false, response: NextResNoProf };
+    }
 
     const { user, profile } = uap;
     if (role && profile.service_role !== role) return { granted: false, response: NextResNoPerm };
