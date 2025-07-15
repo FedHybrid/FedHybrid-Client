@@ -2,14 +2,13 @@
 
 import styled from "styled-components";
 import MeInfo from '@/components/MeInfo'
-import FederationView from "@/components/federations/FederationView";
+import FederationUpdate from "@/components/federations/FederationUpdate";
 
 export default function Home() {
   return (
     <Container>
-      <Title>대시보드</Title>
-      <MeInfo />
-      <FederationView />
+      <Title>연합 정보 업데이트</Title>
+      <FederationUpdate />
     </Container>
   )
 }
