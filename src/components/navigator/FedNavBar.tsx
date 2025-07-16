@@ -30,6 +30,7 @@ export default function FedNavBar() {
       listener?.subscription.unsubscribe()
     }
   },
+  []
 )
 
   const handleLogout = async () => {
