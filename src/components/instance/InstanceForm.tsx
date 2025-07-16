@@ -37,18 +37,18 @@ export default function InstanceForm() {
   return (
     <div className="auth-container">
       <form onSubmit={handleCreatingInstance} className="auth-form">
-        <h2 className="auth-title">회원가입</h2>
+        <h2 className="auth-title">인스턴스 생성</h2>
         <input
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="name"
+          placeholder="Name"
           autoComplete="name"
           className="auth-input"
         />
         <input
           value={ipAddress}
           onChange={e => setIpAddress(e.target.value)}
-          placeholder="ipAddress"
+          placeholder="IpAddress"
           autoComplete="ipAddress"
           className="auth-input"
         />
@@ -56,11 +56,11 @@ export default function InstanceForm() {
           value={port}
           onChange={e => setPort(e.target.value)}
           type="port"
-          placeholder="port"
+          placeholder="Port"
           autoComplete="new-port"
           className="auth-input"
         />
-        <button type="submit" className="auth-button">회원가입</button>
+        <button type="submit" className="auth-button">생성하기</button>
       </form>
     </div>
   )
