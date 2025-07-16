@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import './AuthForm.css'  // 같은 스타일 재사용
+import '../common/FedForm.css'
 
 export default function SignupForm() {
   const [username, setUsername] = useState('')

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import './AuthForm.css' 
+import '../common/FedForm.css'
 
 export default function InstanceForm() {
   const [name, setName] = useState('')
