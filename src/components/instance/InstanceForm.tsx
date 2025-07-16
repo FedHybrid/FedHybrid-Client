@@ -2,36 +2,41 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 import '../common/FedForm.css'
 
 export default function InstanceForm() {
   const [name, setName] = useState('')
   const [ipAddress, setIpAddress] = useState('')
   const [port, setPort] = useState('')
+  const [loading, setLoading] = useState(false);
   const router = useRouter()
-  const supabase = createClient()
 
   const handleCreatingInstance = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const { data, error } = await supabase.auth.signUp({
-      name,
-      ipAddress,
-      port,
-      options: {
-        data: {
-          name: name, // 추가 정보 저장
-        },
-      },
-    })
+    setLoading(true);
+    try {
+      const res = await fetch("/api/instances", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          ipAddress,
+          port,
+        }),
+      });
+      const result = await res.json();
 
-    if (error) {
-      alert('인스턴스 생성에 실패했습니다.')
-    } else {
-      alert('인스턴스 생성이 완료되었습니다.')
-      router.push('/instance')
+      if (res.status === 200 || res.status === 201) {
+        alert('인스턴스 생성이 완료되었습니다.')
+        router.push("/instance");
+      } else {
+        alert("오류: " + (result?.error || "알 수 없는 오류"));
+      }
+    } catch (err: any) {
+      alert("네트워크 오류: " + (err.message || err));
     }
+    setLoading(false);
   }
 
   return (
@@ -60,7 +65,11 @@ export default function InstanceForm() {
           autoComplete="new-port"
           className="auth-input"
         />
-        <button type="submit" className="auth-button">생성하기</button>
+        <button type="submit"
+        disabled={loading}
+        className="auth-button">
+        {loading ? "처리 중..." : "생성하기"}
+        </button>
       </form>
     </div>
   )
