@@ -17,7 +17,9 @@ const GlobalStyles = createGlobalStyle`
 
   body {
     font-family: 'Inter', sans-serif;
-    min-height: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
     background-color: #ffffff;
     color: #ffffff;
     line-height: 1.6;
@@ -34,6 +36,11 @@ const GlobalStyles = createGlobalStyle`
   }
 
   nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
     background-color: #ffffff;
     padding: 1rem 1.5rem;
   }
@@ -41,6 +48,7 @@ const GlobalStyles = createGlobalStyle`
   nav .container {
     max-width: 80rem;
     margin: 0 auto;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -77,9 +85,9 @@ const GlobalStyles = createGlobalStyle`
   }
 
   main {
-    min-height: 100vh;
+    height: 100%;
     background-color: #ffffff;
-    padding: 2rem 1.5rem;
+    padding: 0;
     max-width: 80rem;
     margin: 0 auto;
   }

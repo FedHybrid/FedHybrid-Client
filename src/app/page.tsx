@@ -42,13 +42,14 @@ export default function Home() {
 
 const Container = styled.div`
   max-width: 72rem;
-  min-height: 100vh;
+  height: 100%;
   margin: 0 auto;
-  padding: 4rem 1.5rem;
+  padding: 0;
 `
 
 const MainTitleWrapper = styled.div`
   text-align: center;
+  padding-top: 1rem;
   margin-bottom: 4rem;
 `
 
@@ -91,6 +92,7 @@ const ButtonGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
+  padding: 1rem;
   max-width: 64rem;
   margin: 0 auto;
 
