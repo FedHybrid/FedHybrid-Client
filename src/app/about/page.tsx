@@ -24,7 +24,7 @@ export default function About() {
             tag.feature
           ))}</TagLine>
 
-          <Description>차세대 연합 학습 알고리즘, FedHB를 소개합니다.</Description>
+          {/* <Description>차세대 연합 학습 알고리즘, FedHB를 소개합니다.</Description> */}
         </CenteredContainer>
       </Section>
 
@@ -65,7 +65,7 @@ export default function About() {
 
 const PageWrapper = styled.div`
   background-color: white;
-  min-height: 100vh;
+  height: 100%;
 `;
 
 const Section = styled.section<{ bg?: string }>`
@@ -120,8 +120,6 @@ const TagLine = styled.p`
   @media (min-width: 768px) {
     font-size: 1.5rem;
   }
-
-  margin-bottom: 2rem;
 `;
 
 const Description = styled.p`
