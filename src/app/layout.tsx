@@ -20,7 +20,7 @@ export default function RootLayout({
   <body className={inter.className}>
     <GlobalStyles />
     <FedNavBar/>
-    <main>{children}</main>
+    <main style={{paddingTop: '60px'}}>{children}</main>
   </body>
 </html>
 
