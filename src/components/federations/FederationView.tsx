@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingView from "../common/LoadingView";
+import ErrorView from "../common/ErrorView";
 
 export default function FederationView() {
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ export default function FederationView() {
       setLoading(true);
       try {
         const res = await fetch("/api/federation");
-        if (!res.ok) throw new Error("조회 실패");
+        if (!res.ok) throw new Error("로그인 필요");
         const data = await res.json();
         if (data) {
           setFederation(data);
@@ -35,17 +36,7 @@ export default function FederationView() {
   }
 
   if (error) {
-    return (
-      <div className="p-6 text-center text-red-600">
-        오류 발생: {error}
-        <button
-          className="mt-4 px-4 py-2 rounded bg-yellow-500 text-white"
-          onClick={() => router.push("/supabase/federation/update")}
-        >
-          등록/수정하러 가기
-        </button>
-      </div>
-    );
+    return <ErrorView message={error}/>
   }
 
   if (!federation) {
