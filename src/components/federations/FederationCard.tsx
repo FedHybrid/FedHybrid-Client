@@ -41,7 +41,9 @@ export default function FederationCard({ federation }: Props) {
         <FederationButton
         icon={<Edit />}
         label="참여 정보 수정"
-        onClick={() => router.push("/supabase/federation/update")}/>
+        onClick={() => 
+          router.push(`/supabase/federation/update?name=${encodeURIComponent(federation.name)}&instance_id=${encodeURIComponent(federation.instance_id ?? "")}`)
+        }/>
     </ButtonWrapper>
     </Card>
   )
