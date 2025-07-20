@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingView from "../common/LoadingView";
 import ErrorView from "../common/ErrorView";
+import FederationCard from "./FederationCard";
 
 export default function FederationView() {
   const [loading, setLoading] = useState(true);
@@ -53,20 +54,11 @@ export default function FederationView() {
     );
   }
 
-  return (
-    <div className="max-w-md mx-auto mt-10 p-6 rounded-lg shadow-xl bg-white">
-      <div className="text-xl font-bold mb-4">연합 정보</div>
-      <div className="mb-2"><strong>Name:</strong> {federation.name}</div>
-      <div className="mb-2">
-        <strong>Instance ID:</strong> {federation.instance_id ?? "(없음)"}
-      </div>
-      {/* 필요시 다른 필드도 출력 */}
-      <button
-        className="mt-6 px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
-        onClick={() => router.push("/supabase/federation/update")}
-      >
-        수정하기
-      </button>
-    </div>
-  );
+  return <FederationCard
+  federation={{
+    id: 'f001',
+    name: federation.name,
+    instance_id: federation.instance_id ?? "(없음)",
+  }}
+/>;
 }
