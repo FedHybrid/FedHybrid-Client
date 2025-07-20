@@ -3,22 +3,25 @@
 import styled from "styled-components";
 import MeInfo from '@/components/MeInfo'
 import FederationView from "@/components/federations/FederationView";
+import FederationList from "@/components/federations/FederationList";
 
 export default function Home() {
   return (
     <Container>
       <Title>대시보드</Title>
-      <MeInfo />
-      <FederationView />
+      <FederationList />
     </Container>
   )
 }
 
+{/* <MeInfo />
+      <FederationView /> */}
+
 const Container = styled.div`
   width: 100%;
   margin: 0 auto;
+  text-align: center;
   padding: 2rem 2rem;
-  background-color: gray;
   `
 
 const Title = styled.h1`
@@ -26,5 +29,5 @@ const Title = styled.h1`
   font-weight: 700;
   color: #111827;
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
 `
