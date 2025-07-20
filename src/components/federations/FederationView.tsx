@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LoadingView from "../common/LoadingView";
 
 export default function FederationView() {
   const [loading, setLoading] = useState(true);
@@ -30,7 +31,7 @@ export default function FederationView() {
   }, []);
 
   if (loading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return <LoadingView/>;
   }
 
   if (error) {
