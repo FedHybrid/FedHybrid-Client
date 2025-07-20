@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import '../common/FedForm.css'
-import './FederationList.css' // ✅ CSS 분리된 파일 불러오기
+import './FederationList.css'
 
 interface Instance {
   name: string
@@ -49,10 +49,10 @@ export default function FederationList() {
       <table className="instance-table">
         <thead>
           <tr>
-            <th>name</th>
+            <th>Name</th>
             <th>IpAddress</th>
-            <th>port</th>
-            <th>삭제</th>
+            <th>Port</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -63,6 +63,7 @@ export default function FederationList() {
               <td className="instance-port">{instance.port}</td>
               <td>
                 <div className="instance-actions">
+                  <button className="action-button blue-hover">갱신</button>
                   <button className="action-button">삭제</button>
                 </div>
               </td>
