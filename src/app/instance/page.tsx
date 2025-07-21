@@ -1,12 +1,14 @@
 'use client'
 
 import styled from "styled-components";
+import FederationList from "@/components/federations/FederationList";
 
 export default function Instance() {
   return (
     <Container>
       <Content>
         <Title>인스턴스 리스트 조회</Title>
+        <FederationList />
       </Content>
     </Container>
   )
