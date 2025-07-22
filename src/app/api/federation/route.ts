@@ -20,7 +20,7 @@ export async function PUT(request: Request) {
 	if (instance_id !== null) {
 		const { data: instance, error: instErr } = await supabase
 			.from("instances").select('id').eq('id', instance_id).single();
-		if (!instErr || !instance) {
+		if (instErr || !instance) {
 			return NextResponse.json({ error: "유효하지 않은 인스턴스입니다." }, { status: 400 });
 		}
 	}
@@ -64,6 +64,6 @@ export async function GET(request: Request) {
 
 	// 연합 조회
 	const { data, error } = await supabase.from("federations").select().eq('provider_id', user.id).single();
-	if (error) return NextResponse.json({ error: "연합 정보 조회에 실패했습니다." }, { status: 400 });
+	if (error) return new NextResponse(null, { status: 204 });
 	return NextResponse.json(data);
 }
