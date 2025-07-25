@@ -2,12 +2,13 @@
 
 import styled from "styled-components";
 import FederationView from "@/components/federations/FederationView";
+import DashboardCard from "@/components/Dashboard/DashboardCard";
 
 export default function Home() {
   return (
     <Container>
       <Title>대시보드</Title>
-      <FederationView />
+      <DashboardCard />
     </Container>
   )
 }
