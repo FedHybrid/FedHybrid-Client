@@ -7,6 +7,7 @@ import { UserDropdown } from "./UserDropDown";
 
 export default function FedNavBar() {
   const [user, setUser] = useState<any>(null)
+  const [role, setRole] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -33,6 +34,22 @@ export default function FedNavBar() {
   []
 )
 
+  useEffect(() => {
+    if (!user) return
+
+    const fetchServiceRole = async () => {
+      try {
+        const res = await fetch("/api/me");
+        if (!res.ok) throw new Error("로그인 필요");
+        const data = await res.json();
+        setRole(data.service_role)
+      } catch (e: any) {
+        console.log(e.message || "조회 실패")
+      }
+    };
+    fetchServiceRole();
+  }, [user]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
   }
@@ -57,7 +74,7 @@ export default function FedNavBar() {
           <Link href="/instance">인스턴스</Link>
           <span className="nav-divider">|</span>
           {user ? (
-                 <UserDropdown user={user} onClick={handleLogout}/>          
+                 <UserDropdown user={user} role={role} onClick={handleLogout}/>          
               ) : (
                 <Link href="/supabase/login">로그인</Link>
               )}
