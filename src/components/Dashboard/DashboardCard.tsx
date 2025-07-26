@@ -42,8 +42,6 @@ export default function DashboardCard() {
 
   return (
     <div className="dashboard-wrapper">
-      <p className="dashboard-subtitle">Overview of the federated learning process</p>
-
       <div className="card-grid">
         <div className="card">
           <div className="card-title">Total Clients</div>
