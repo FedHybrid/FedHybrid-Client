@@ -63,8 +63,8 @@ export default function FederationList() {
               <td className="instance-port">{instance.port}</td>
               <td>
                 <div className="instance-actions">
-                  <button className="action-button blue-hover">갱신</button>
-                  <button className="action-button">삭제</button>
+                  <button className="action-button">갱신</button>
+                  <button className="action-button blue-hover">삭제</button>
                 </div>
               </td>
             </tr>
