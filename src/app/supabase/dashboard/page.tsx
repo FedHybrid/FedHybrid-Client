@@ -7,6 +7,7 @@ import LoadingView from "@/components/common/LoadingView";
 import ErrorView from "@/components/common/ErrorView";
 import DashboardCard from "@/components/Dashboard/DashboardCard";
 import "@/components/common/DashboardCard.css";
+import { KeyStorage } from "@/constants/KeyStorage";
 
 export default function Home() {
   const [role, setRole] = useState("");
@@ -39,7 +40,7 @@ export default function Home() {
 
   return (
     <Container>
-      {role === "PROVIDER" ? (
+      {role === KeyStorage.PROVIDER ? (
         <div>
           <Title>관리자 대시보드</Title>
           <p className="dashboard-subtitle">

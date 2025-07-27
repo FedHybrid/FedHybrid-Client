@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client';
 import { UserDropdown } from "./UserDropDown";
+import { KeyStorage } from "@/constants/KeyStorage";
 
 export default function FedNavBar() {
   const [user, setUser] = useState<any>(null)
@@ -19,9 +20,9 @@ export default function FedNavBar() {
       .catch(() => setUser(null))
       
       const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
+      if (event === KeyStorage.SIGNED_IN) {
         setUser(session?.user ?? null)
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === KeyStorage.SIGNED_OUT) {
         setUser(null)
       }
     })

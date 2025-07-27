@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { User, LogOut, ChevronDown } from "lucide-react"
 import styled from 'styled-components'
 import { RoleBadgeType } from "@/types/RoleBadgeType"
+import { KeyStorage } from "@/constants/KeyStorage"
 
 export function UserDropdown({user, role, onClick}: {
     user: any
@@ -27,11 +28,11 @@ export function UserDropdown({user, role, onClick}: {
   }, [])
 
   const getRoleText = (role: string) => {
-    return role === "PROVIDER" ? "관리자" : "참여자"
+    return role === KeyStorage.PROVIDER ? "관리자" : "참여자"
   }
 
   const getRoleBadgeColor = (role: string) => {
-    return role === "PROVIDER" ? { bg: '#f3e8ff', text: '#6b21a8' } : { bg: '#f3f4f6', text: '#1f2937' }
+    return role === KeyStorage.PROVIDER ? { bg: '#f3e8ff', text: '#6b21a8' } : { bg: '#f3f4f6', text: '#1f2937' }
   }
 
   const roleStyle = getRoleBadgeColor(role) 
