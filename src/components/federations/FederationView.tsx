@@ -17,8 +17,8 @@ export default function FederationView() {
       setLoading(true);
       try {
         const res = await fetch("/api/federation");
-        if (!res.ok) throw new Error("로그인 필요");
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
         if (data) {
           setFederation(data);
         } else {
@@ -33,11 +33,11 @@ export default function FederationView() {
   }, []);
 
   if (loading) {
-    return <LoadingView/>;
+    return <LoadingView />;
   }
 
   if (error) {
-    return <ErrorView message={error}/>
+    return <ErrorView message={error} />;
   }
 
   if (!federation) {
@@ -54,11 +54,13 @@ export default function FederationView() {
     );
   }
 
-  return <FederationCard
-  federation={{
-    id: 'f001',
-    name: federation.name,
-    instance_id: federation.instance_id ?? "(없음)",
-  }}
-/>;
+  return (
+    <FederationCard
+      federation={{
+        id: "f001",
+        name: federation.name,
+        instance_id: federation.instance_id ?? "(없음)",
+      }}
+    />
+  );
 }
