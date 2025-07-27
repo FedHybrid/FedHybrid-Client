@@ -65,6 +65,7 @@ export default function Home() {
 const Container = styled.div`
   background-color: white;
   height: 100%;
+  padding: 2rem;
 `;
 
 const Title = styled.h1`
