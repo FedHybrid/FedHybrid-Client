@@ -4,9 +4,11 @@ import Link from "next/link"
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client';
 import { UserDropdown } from "./UserDropDown";
+import { KeyStorage } from "@/constants/KeyStorage";
 
 export default function FedNavBar() {
   const [user, setUser] = useState<any>(null)
+  const [role, setRole] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -18,9 +20,9 @@ export default function FedNavBar() {
       .catch(() => setUser(null))
       
       const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
+      if (event === KeyStorage.SIGNED_IN) {
         setUser(session?.user ?? null)
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === KeyStorage.SIGNED_OUT) {
         setUser(null)
       }
     })
@@ -32,6 +34,22 @@ export default function FedNavBar() {
   },
   []
 )
+
+  useEffect(() => {
+    if (!user) return
+
+    const fetchServiceRole = async () => {
+      try {
+        const res = await fetch("/api/me");
+        if (!res.ok) throw new Error("로그인 필요");
+        const data = await res.json();
+        setRole(data.service_role)
+      } catch (e: any) {
+        console.log(e.message || "조회 실패")
+      }
+    };
+    fetchServiceRole();
+  }, [user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -57,7 +75,7 @@ export default function FedNavBar() {
           <Link href="/instance">인스턴스</Link>
           <span className="nav-divider">|</span>
           {user ? (
-                 <UserDropdown user={user} onClick={handleLogout}/>          
+                 <UserDropdown user={user} role={role} onClick={handleLogout}/>          
               ) : (
                 <Link href="/supabase/login">로그인</Link>
               )}

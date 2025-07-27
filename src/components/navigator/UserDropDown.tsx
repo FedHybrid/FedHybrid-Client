@@ -4,9 +4,11 @@ import { useState, useRef, useEffect } from "react"
 import { User, LogOut, ChevronDown } from "lucide-react"
 import styled from 'styled-components'
 import { RoleBadgeType } from "@/types/RoleBadgeType"
+import { KeyStorage } from "@/constants/KeyStorage"
 
-export function UserDropdown({user, onClick}: {
+export function UserDropdown({user, role, onClick}: {
     user: any
+    role: string
     onClick: () => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -26,16 +28,15 @@ export function UserDropdown({user, onClick}: {
   }, [])
 
   const getRoleText = (role: string) => {
-    return role === "admin" ? "관리자" : "손님"
+    return role === KeyStorage.PROVIDER ? "관리자" : "참여자"
   }
 
   const getRoleBadgeColor = (role: string) => {
-    return role === "admin" ? { bg: '#f3e8ff', text: '#6b21a8' } : { bg: '#f3f4f6', text: '#1f2937' }
+    return role === KeyStorage.PROVIDER ? { bg: '#f3e8ff', text: '#6b21a8' } : { bg: '#f3f4f6', text: '#1f2937' }
   }
 
-  // todo: api 적용 예정
-  const roleStyle = getRoleBadgeColor("admin") 
-  const roleText = getRoleText("admin")
+  const roleStyle = getRoleBadgeColor(role) 
+  const roleText = getRoleText(role)
 
  return (
     <Wrapper ref={dropdownRef}>

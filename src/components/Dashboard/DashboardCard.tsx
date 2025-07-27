@@ -41,7 +41,7 @@ export default function DashboardCard() {
 
 
   return (
-    <div className="dashboard-wrapper">
+    <div className="card-wrapper">
       <div className="card-grid">
         <div className="card">
           <div className="card-title">Total Clients</div>
