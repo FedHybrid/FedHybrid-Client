@@ -6,7 +6,7 @@ import '../common/FedForm.css'
 
 export default function InstanceForm() {
   const [name, setName] = useState('')
-  const [ipAddress, setIpAddress] = useState('')
+  const [ip_address, setIpAddress] = useState('')
   const [port, setPort] = useState('')
   const [loading, setLoading] = useState(false);
   const router = useRouter()
@@ -21,7 +21,7 @@ export default function InstanceForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
-          ipAddress,
+          ip_address,
           port,
         }),
       });
@@ -51,7 +51,7 @@ export default function InstanceForm() {
           className="auth-input"
         />
         <input
-          value={ipAddress}
+          value={ip_address}
           onChange={e => setIpAddress(e.target.value)}
           placeholder="IpAddress"
           autoComplete="ipAddress"
