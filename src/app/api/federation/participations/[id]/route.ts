@@ -60,8 +60,9 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     if (!granted) return errRes;
 
     // URL 파라미터 획득
-    const { id: participation_id } = await params;
-    console.log(participation_id);
+    const participation_id = params.id;
+    // const { id: participation_id } = await params;
+    // console.log(participation_id);
 
     // 삭제 시엔 연합 정보 굳이 조회하지 않고 바로 삭제함
     const { data, error } = await supabase.from("participations").delete().eq('id', participation_id);
