@@ -55,7 +55,7 @@ export default function FederationView() {
   return (
     <FederationCard
       federation={{
-        id: "f001",
+        id: federation.id,
         name: federation.name,
         instance_id: federation.instance_id ?? "(없음)",
       }}
