@@ -10,6 +10,7 @@ import "@/components/common/DashboardCard.css";
 import { KeyStorage } from "@/constants/KeyStorage";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Path } from "@/constants/Path";
 
 export default function Home() {
   const [role, setRole] = useState("");
@@ -40,7 +41,7 @@ export default function Home() {
   if (error) {
     if (error.includes("로그인")) {
       toast.error(error);
-      router.push("/supabase/login");
+      router.push(Path.LOGIN);
       return null;
     }
 

@@ -1,25 +1,26 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import '../common/FedForm.css'
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import "../common/FedForm.css";
+import { Path } from "@/constants/Path";
 
 export default function FederationUpdateForm() {
   const [name, setName] = useState("");
   const [instanceId, setInstanceId] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const queryName = searchParams.get('name') || ''
-    setName(queryName)
-    
-    if (searchParams.get('instance_id') != '(없음)') {
-      const queryInstanceId = searchParams.get('instance_id') || ''
-      setInstanceId(queryInstanceId)
+    const queryName = searchParams.get("name") || "";
+    setName(queryName);
+
+    if (searchParams.get("instance_id") != "(없음)") {
+      const queryInstanceId = searchParams.get("instance_id") || "";
+      setInstanceId(queryInstanceId);
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +41,7 @@ export default function FederationUpdateForm() {
       const result = await res.json();
 
       if (res.status === 200 || res.status === 201) {
-        router.push("/supabase/dashboard");
+        router.push(Path.DASHBOARD);
       } else {
         alert("오류: " + (result?.error || "알 수 없는 오류"));
       }
@@ -56,24 +57,22 @@ export default function FederationUpdateForm() {
         <h2 className="auth-title">연합 정보 업데이트</h2>
         <input
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
           placeholder="이름 (필수)"
           autoComplete="name"
           className="auth-input"
         />
         <input
           value={instanceId}
-          onChange={e => setInstanceId(e.target.value)}
+          onChange={(e) => setInstanceId(e.target.value)}
           placeholder="Instance Id (선택)"
           autoComplete="instanceId"
           className="auth-input"
         />
-        <button type="submit"
-        disabled={loading}
-        className="auth-button">
-        {loading ? "처리 중..." : "저장"}
+        <button type="submit" disabled={loading} className="auth-button">
+          {loading ? "처리 중..." : "저장"}
         </button>
       </form>
     </div>
-  )
+  );
 }
