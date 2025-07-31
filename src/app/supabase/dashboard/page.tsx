@@ -8,11 +8,14 @@ import ErrorView from "@/components/common/ErrorView";
 import DashboardCard from "@/components/Dashboard/DashboardCard";
 import "@/components/common/DashboardCard.css";
 import { KeyStorage } from "@/constants/KeyStorage";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function Home() {
   const [role, setRole] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchServiceRole = async () => {
@@ -35,6 +38,12 @@ export default function Home() {
   }
 
   if (error) {
+    if (error.includes("로그인")) {
+      toast.error(error);
+      router.push("/supabase/login");
+      return null;
+    }
+
     return <ErrorView message={error} />;
   }
 

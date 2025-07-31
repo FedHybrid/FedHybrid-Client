@@ -1,8 +1,9 @@
-import { Inter } from "next/font/google"
-import GlobalStyles from '@/styles/GlobalStyles'
+import { Inter } from "next/font/google";
+import GlobalStyles from "@/styles/GlobalStyles";
 import FedNavBar from "@/components/navigator/FedNavBar";
+import { Toaster } from "sonner";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "FedHB - 연합학습 하이브리드 데모 플랫폼",
@@ -12,17 +13,16 @@ export const metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  
   return (
     <html lang="ko">
-  <body className={inter.className}>
-    <GlobalStyles />
-    <FedNavBar/>
-    <main style={{paddingTop: '60px'}}>{children}</main>
-  </body>
-</html>
-
-  )
+      <body className={inter.className}>
+        <GlobalStyles />
+        <FedNavBar />
+        <main style={{ paddingTop: "60px" }}>{children}</main>
+        <Toaster />
+      </body>
+    </html>
+  );
 }
