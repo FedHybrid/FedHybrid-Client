@@ -64,7 +64,7 @@ const handleDelete = async (id: number) => {
     setInstances(prev => prev.filter((instance) => instance.id !== id))
   } catch (error) {
     console.error('삭제 요청 실패:', error)
-    alert('삭제에 실패했습니다.')
+    alert('등록되어 있는 인스턴스는 삭제할 수 없습니다.')
   }
   setLoading(false);
 }
