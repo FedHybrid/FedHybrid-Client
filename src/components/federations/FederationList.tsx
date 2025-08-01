@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import '../common/FedForm.css'
 import './FederationList.css'
+import LoadingView from '../common/LoadingView'
 
 interface Instance {
   id: number
@@ -14,6 +15,7 @@ interface Instance {
 
 export default function FederationList() {
   const [instances, setInstances] = useState<Instance[]>([])
+  const [loading, setLoading] = useState(true);
   const router = useRouter()
 
   useEffect(() => {
@@ -24,6 +26,7 @@ export default function FederationList() {
 
     // GET 요청 수행
     const fetchInstances = async () => {
+      setLoading(true);
       try {
         const res = await fetch('/api/instances')
         if (!res.ok) throw new Error('API 응답 오류')
@@ -40,12 +43,16 @@ export default function FederationList() {
         console.error('API 요청 실패, 더미 데이터로 대체:', error)
         setInstances(dummyData)
       }
+      setLoading(false);
     }
 
     fetchInstances()
   }, [])
 
 const handleDelete = async (id: number) => {
+  const ok = window.confirm('정말 삭제하시겠습니까?');
+  if (!ok) return;
+  setLoading(true);
   try {
     const res = await fetch(`/api/instances/${id}`, {
       method: 'DELETE',
@@ -59,8 +66,12 @@ const handleDelete = async (id: number) => {
     console.error('삭제 요청 실패:', error)
     alert('삭제에 실패했습니다.')
   }
+  setLoading(false);
 }
 
+ if (loading) {
+    return <LoadingView/>;
+  }
 
   return (
     <div className="instance-container">
