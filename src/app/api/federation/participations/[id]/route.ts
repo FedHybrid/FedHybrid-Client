@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { authorize } from "@/lib/supabase/authHelpers";
 
 /** 내 연합의 참여자 갱신 */
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     // supabase 연결 및 인가
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
@@ -14,7 +14,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     // DTO & URL 언패킹
     const body = await request.json();
     const { customer_id, instance_id = null } = body;
-    const participation_id = params.id;
+    const { id: participation_id } = await params;
 
     // instance_id 가 지정된 경우, 유효성 체크
     if (instance_id !== null) {
@@ -52,7 +52,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 /** 내 연합의 참여자 삭제 */
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     // supabase 연결 및 인가
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);

@@ -1,12 +1,15 @@
 'use client'
 
 import styled from "styled-components";
+import { Suspense } from "react";
 import FederationUpdateForm from "@/components/federations/FederationUpdateForm";
 
 export default function Home() {
   return (
     <Container>
-      <FederationUpdateForm />
+      <Suspense fallback={<div>로딩 중...</div>}>
+        <FederationUpdateForm />
+      </Suspense>
     </Container>
   )
 }
