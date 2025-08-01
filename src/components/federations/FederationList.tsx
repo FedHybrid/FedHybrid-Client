@@ -6,8 +6,9 @@ import '../common/FedForm.css'
 import './FederationList.css'
 
 interface Instance {
+  id: number
   name: string
-  ip_address: string
+  ip_address: number
   port: number
 }
 
@@ -17,8 +18,8 @@ export default function FederationList() {
 
   useEffect(() => {
     const dummyData: Instance[] = [
-      { name: 'FedAvg', ip_address: '10101011', port: 505},
-      { name: 'FedProx', ip_address: '192.168.0.1', port: 8080},
+      { id: 1, name: 'FedAvg', ip_address: 10101011, port: 505},
+      { id: 2, name: 'FedProx', ip_address: 192.168, port: 8080},
     ]
 
     // GET 요청 수행
@@ -44,6 +45,23 @@ export default function FederationList() {
     fetchInstances()
   }, [])
 
+const handleDelete = async (id: number) => {
+  try {
+    const res = await fetch(`/api/instances/${id}`, {
+      method: 'DELETE',
+    })
+
+    if (!res.ok) throw new Error('삭제 실패')
+
+    // 삭제 성공 시 상태에서 해당 인스턴스 제거
+    setInstances(prev => prev.filter((instance) => instance.id !== id))
+  } catch (error) {
+    console.error('삭제 요청 실패:', error)
+    alert('삭제에 실패했습니다.')
+  }
+}
+
+
   return (
     <div className="instance-container">
       <table className="instance-table">
@@ -56,15 +74,15 @@ export default function FederationList() {
           </tr>
         </thead>
         <tbody>
-          {instances.map((instance, index) => (
-            <tr key={index}>
+          {instances.map((instance) => (
+            <tr key={instance.id}>
               <td className="instance-name">{instance.name}</td>
               <td className="instance-ip">{instance.ip_address}</td>
               <td className="instance-port">{instance.port}</td>
               <td>
                 <div className="instance-actions">
-                  <button className="action-button">갱신</button>
-                  <button className="action-button blue-hover">삭제</button>
+                  <button className="action-button" onClick={() => router.push(`/instance/create?id=${instance.id}`)}>수정</button>
+                  <button className="action-button blue-hover" onClick={() => handleDelete(instance.id)}>삭제</button>
                 </div>
               </td>
             </tr>
