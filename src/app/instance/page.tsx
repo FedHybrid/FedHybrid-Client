@@ -18,7 +18,7 @@ const Container = styled.div`
   width: 100%;
   margin: 0 auto;
   padding: 2rem 2rem;
-  background-color: #f9fafb;
+  background-color: white;
   `
 
 const Content = styled.div`
