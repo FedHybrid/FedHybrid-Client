@@ -6,6 +6,7 @@ import FederationView from "@/components/federations/FederationView";
 import LoadingView from "@/components/common/LoadingView";
 import ErrorView from "@/components/common/ErrorView";
 import DashboardCard from "@/components/Dashboard/DashboardCard";
+import ExcelResultViewer from "@/components/dashboard/ExcelResultViewer";
 import "@/components/common/DashboardCard.css";
 import { KeyStorage } from "@/constants/KeyStorage";
 
@@ -48,6 +49,7 @@ export default function Home() {
           </p>
           <DashboardCard />
           <FederationView />
+          <ExcelResultViewer />
         </div>
       ) : (
         <div>
@@ -56,6 +58,7 @@ export default function Home() {
             Overview of the federated learning process
           </p>
           <DashboardCard />
+          <ExcelResultViewer />
         </div>
       )}
     </Container>
