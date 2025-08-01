@@ -43,7 +43,8 @@ export async function GET(request: Request) {
     const { data, error } = await supabase
         .from("instances")
         .select()
-        .eq('owner_id', owner_id);
+        .eq('owner_id', owner_id)
+        .order('created_at', { ascending: true });
     if (error) {
         console.log(error.message);
         return NextResponse.json({ error: "인스턴스 조회 중 문제가 발생했습니다." }, { status: 400 });

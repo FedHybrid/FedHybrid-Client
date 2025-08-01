@@ -3,6 +3,36 @@ import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server';
 import { authorize } from "@/lib/supabase/authHelpers";
 
+/** 소유 인스턴스 갱신 전 정보 불러오기 */
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const cookieStore = cookies();
+  const supabase = await createClient(cookieStore);
+  const { granted, response: errRes, user } = await authorize(request, supabase);
+  if (!granted) return errRes;
+
+  const id = params.id;
+
+  const { data, error } = await supabase
+    .from("instances")
+    .select()
+    .eq("id", id)
+    .eq("owner_id", user.id) // 소유자 검증
+    .single();
+
+  if (error) {
+    console.error(error.message);
+    return NextResponse.json(
+      { error: "인스턴스 정보를 불러오지 못했습니다." },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json(data, { status: 200 });
+}
+
 /** 소유 인스턴스 갱신 */
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
     // supabase 연결 및 인가
