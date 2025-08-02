@@ -7,6 +7,7 @@ import ErrorView from "../common/ErrorView";
 import FederationCard from "./FederationCard";
 import styled from "styled-components";
 import { Users } from "lucide-react";
+import { Path } from "@/constants/Path";
 
 export default function FederationView() {
   const [loading, setLoading] = useState(true);
@@ -46,7 +47,7 @@ export default function FederationView() {
   if (!federation) {
     return (
       <EmptyFederationCard
-        onClick={() => router.push("/supabase/federation/update")}
+        onClick={() => router.push(Path.FEDERATION_UPDATE)}
       />
     );
   }
@@ -54,7 +55,7 @@ export default function FederationView() {
   return (
     <FederationCard
       federation={{
-        id: "f001",
+        id: federation.id,
         name: federation.name,
         instance_id: federation.instance_id ?? "(없음)",
       }}

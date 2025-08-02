@@ -1,76 +1,77 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import '../common/FedForm.css'
-import './FederationList.css'
-import LoadingView from '../common/LoadingView'
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import "../common/FedForm.css";
+import "./FederationList.css";
+import LoadingView from "../common/LoadingView";
+import ErrorView from "../common/ErrorView";
+import { toast } from "sonner";
+import { Path } from "@/constants/Path";
 
 interface Instance {
-  id: number
-  name: string
-  ip_address: number
-  port: number
+  id: number;
+  name: string;
+  ip_address: number;
+  port: number;
 }
 
 export default function FederationList() {
-  const [instances, setInstances] = useState<Instance[]>([])
+  const [instances, setInstances] = useState<Instance[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    const dummyData: Instance[] = [
-      { id: 1, name: 'FedAvg', ip_address: 10101011, port: 505},
-      { id: 2, name: 'FedProx', ip_address: 192.168, port: 8080},
-    ]
-
     // GET 요청 수행
     const fetchInstances = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/instances')
-        if (!res.ok) throw new Error('API 응답 오류')
-
-        const data: Instance[] = await res.json()
-
-        // 데이터가 있으면 사용, 없으면 더미 사용
-        if (data && data.length > 0) {
-          setInstances(data)
-        } else {
-          setInstances(dummyData)
-        }
-      } catch (error) {
-        console.error('API 요청 실패, 더미 데이터로 대체:', error)
-        setInstances(dummyData)
+        const res = await fetch("/api/instances");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        setInstances(data);
+      } catch (e: any) {
+        setError(e.message || "조회 실패");
       }
       setLoading(false);
+    };
+
+    fetchInstances();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    const ok = window.confirm("정말 삭제하시겠습니까?");
+    if (!ok) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/instances/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("삭제 실패");
+
+      // 삭제 성공 시 상태에서 해당 인스턴스 제거
+      setInstances((prev) => prev.filter((instance) => instance.id !== id));
+    } catch (error) {
+      console.error("삭제 요청 실패:", error);
+      alert("등록되어 있는 인스턴스는 삭제할 수 없습니다.");
+    }
+    setLoading(false);
+  };
+
+  if (loading) {
+    return <LoadingView />;
+  }
+
+  if (error) {
+    if (error.includes("로그인")) {
+      toast.error(error);
+      router.push(Path.LOGIN);
+      return null;
     }
 
-    fetchInstances()
-  }, [])
-
-const handleDelete = async (id: number) => {
-  const ok = window.confirm('정말 삭제하시겠습니까?');
-  if (!ok) return;
-  setLoading(true);
-  try {
-    const res = await fetch(`/api/instances/${id}`, {
-      method: 'DELETE',
-    })
-
-    if (!res.ok) throw new Error('삭제 실패')
-
-    // 삭제 성공 시 상태에서 해당 인스턴스 제거
-    setInstances(prev => prev.filter((instance) => instance.id !== id))
-  } catch (error) {
-    console.error('삭제 요청 실패:', error)
-    alert('등록되어 있는 인스턴스는 삭제할 수 없습니다.')
-  }
-  setLoading(false);
-}
-
- if (loading) {
-    return <LoadingView/>;
+    return <ErrorView message={error} />;
   }
 
   return (
@@ -92,8 +93,20 @@ const handleDelete = async (id: number) => {
               <td className="instance-port">{instance.port}</td>
               <td>
                 <div className="instance-actions">
-                  <button className="action-button" onClick={() => router.push(`/instance/create?id=${instance.id}`)}>수정</button>
-                  <button className="action-button blue-hover" onClick={() => handleDelete(instance.id)}>삭제</button>
+                  <button
+                    className="action-button"
+                    onClick={() =>
+                      router.push(`/instance/create?id=${instance.id}`)
+                    }
+                  >
+                    수정
+                  </button>
+                  <button
+                    className="action-button blue-hover"
+                    onClick={() => handleDelete(instance.id)}
+                  >
+                    삭제
+                  </button>
                 </div>
               </td>
             </tr>
@@ -101,9 +114,12 @@ const handleDelete = async (id: number) => {
         </tbody>
       </table>
 
-      <button className="auth-button" onClick={() => router.push('/instance/create')}>
+      <button
+        className="auth-button"
+        onClick={() => router.push(Path.INSTANCE_CREATE)}
+      >
         추가하기
       </button>
     </div>
-  )
+  );
 }

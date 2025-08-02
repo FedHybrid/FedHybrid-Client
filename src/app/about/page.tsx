@@ -1,14 +1,15 @@
-'use client'
+"use client";
 
-import styled from "styled-components"
-import { useRouter } from 'next/navigation'
-import { Wifi, Target, Scale } from "lucide-react"
-import FeatureCard from "@/components/common/Card"
-import { featureTags } from "@/constants/FeatureTags"
+import styled from "styled-components";
+import { useRouter } from "next/navigation";
+import { Wifi, Target, Scale } from "lucide-react";
+import FeatureCard from "@/components/common/Card";
+import { featureTags } from "@/constants/FeatureTags";
+import { Path } from "@/constants/Path";
 
 export default function About() {
-    const router = useRouter()
-  
+  const router = useRouter();
+
   return (
     <PageWrapper>
       <Section>
@@ -20,9 +21,7 @@ export default function About() {
 
           <SubHeading>: A Novel Approach to Federated Learning</SubHeading>
 
-          <TagLine>{featureTags.map((tag) => (
-            tag.feature
-          ))}</TagLine>
+          <TagLine>{featureTags.map((tag) => tag.feature)}</TagLine>
 
           {/* <Description>차세대 연합 학습 알고리즘, FedHB를 소개합니다.</Description> */}
         </CenteredContainer>
@@ -54,13 +53,13 @@ export default function About() {
 
       <ButtonSection>
         <ButtonWrapper>
-            <StyledButton onClick={() => router.push('/supabase/dashboard')}>
-              FedHB 성능 바로 확인하기
-              </StyledButton>
+          <StyledButton onClick={() => router.push(Path.DASHBOARD)}>
+            FedHB 성능 바로 확인하기
+          </StyledButton>
         </ButtonWrapper>
       </ButtonSection>
     </PageWrapper>
-  )
+  );
 }
 
 const PageWrapper = styled.div`
@@ -148,16 +147,15 @@ const StyledButton = styled.button`
   font-weight: bold;
   font-size: 1.25rem;
   padding: 1rem 3rem;
-  background-color: #dbeafe; 
+  background-color: #dbeafe;
   cursor: pointer;
   border-radius: 0.5rem;
   border: none;
   transition: all 0.2s ease-in-out;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  
+
   &:hover {
     background-color: #bfdbfe;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
-
 `;

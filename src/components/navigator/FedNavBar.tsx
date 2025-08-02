@@ -1,65 +1,67 @@
-'use client'
+"use client";
 
-import Link from "next/link"
-import { useEffect, useState } from 'react'
-import { createClient } from '@/utils/supabase/client';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 import { UserDropdown } from "./UserDropDown";
 import { KeyStorage } from "@/constants/KeyStorage";
+import { Path } from "@/constants/Path";
 
 export default function FedNavBar() {
-  const [user, setUser] = useState<any>(null)
-  const [role, setRole] = useState('')
-  const supabase = createClient()
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState("");
+  const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getUser()
+    supabase.auth
+      .getUser()
       .then(({ data, error }) => {
-        if (error) throw error
-        setUser(data.user)
+        if (error) throw error;
+        setUser(data.user);
       })
-      .catch(() => setUser(null))
-      
-      const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === KeyStorage.SIGNED_IN) {
-        setUser(session?.user ?? null)
-      } else if (event === KeyStorage.SIGNED_OUT) {
-        setUser(null)
+      .catch(() => setUser(null));
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === KeyStorage.SIGNED_IN) {
+          setUser(session?.user ?? null);
+        } else if (event === KeyStorage.SIGNED_OUT) {
+          setUser(null);
+        }
       }
-    })
+    );
 
     // 컴포넌트 언마운트 시 cleanup
     return () => {
-      listener?.subscription.unsubscribe()
-    }
-  },
-  []
-)
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
     const fetchServiceRole = async () => {
       try {
         const res = await fetch("/api/me");
         if (!res.ok) throw new Error("로그인 필요");
         const data = await res.json();
-        setRole(data.service_role)
+        setRole(data.service_role);
       } catch (e: any) {
-        console.log(e.message || "조회 실패")
+        console.log(e.message || "조회 실패");
       }
     };
     fetchServiceRole();
   }, [user]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-  }
+    await supabase.auth.signOut();
+  };
 
   return (
     <nav>
       <div className="container">
         <div className="logo-group">
-          <Link href="/">
+          <Link href={Path.MAIN}>
             <h1>
               <span className="logo-f">Fed</span>
               <span className="logo-h">H</span>
@@ -68,19 +70,19 @@ export default function FedNavBar() {
           </Link>
         </div>
         <div className="nav-menu">
-          <Link href="/about">FedHB 소개</Link>
+          <Link href={Path.ABOUT}>FedHB 소개</Link>
           <span className="nav-divider">|</span>
-          <Link href="/supabase/dashboard">대시보드</Link>
+          <Link href={Path.DASHBOARD}>대시보드</Link>
           <span className="nav-divider">|</span>
-          <Link href="/instance">인스턴스</Link>
+          <Link href={Path.INSTANCE}>인스턴스</Link>
           <span className="nav-divider">|</span>
           {user ? (
-                 <UserDropdown user={user} role={role} onClick={handleLogout}/>          
-              ) : (
-                <Link href="/supabase/login">로그인</Link>
-              )}
+            <UserDropdown user={user} role={role} onClick={handleLogout} />
+          ) : (
+            <Link href={Path.LOGIN}>로그인</Link>
+          )}
         </div>
       </div>
     </nav>
-    )
+  );
 }
