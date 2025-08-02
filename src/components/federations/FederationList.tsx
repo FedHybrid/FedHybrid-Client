@@ -116,7 +116,7 @@ export default function FederationList() {
 
       <button
         className="auth-button"
-        onClick={() => router.push("/instance/create")}
+        onClick={() => router.push(Path.INSTANCE_CREATE)}
       >
         추가하기
       </button>

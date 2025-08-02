@@ -28,7 +28,7 @@ export default function InstanceForm() {
         setPort(String(data.port ?? ""));
       } catch (e) {
         alert("데이터 로딩 실패");
-        router.push("/instance");
+        router.push(Path.INSTANCE);
       }
     };
     fetchInstance();
