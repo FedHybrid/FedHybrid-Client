@@ -2,16 +2,15 @@
 
 import styled from "styled-components";
 import { useEffect, useState } from "react";
-import FederationView from "@/components/federations/FederationView";
 import LoadingView from "@/components/common/LoadingView";
 import ErrorView from "@/components/common/ErrorView";
-import DashboardCard from "@/components/Dashboard/DashboardCard";
-import ExcelResultViewer from "@/components/dashboard/ExcelResultViewer";
 import "@/components/common/DashboardCard.css";
 import { KeyStorage } from "@/constants/KeyStorage";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Path } from "@/constants/Path";
+import ProviderDashboard from "@/components/Dashboard/ProviderDashboard";
+import CustomerDashboard from "@/components/Dashboard/CustomerDashboard";
 
 export default function Home() {
   const [role, setRole] = useState("");
@@ -52,24 +51,9 @@ export default function Home() {
   return (
     <Container>
       {role === KeyStorage.PROVIDER ? (
-        <div>
-          <Title>관리자 대시보드</Title>
-          <p className="dashboard-subtitle">
-            Overview of the federated learning process
-          </p>
-          <DashboardCard />
-          <FederationView />
-          <ExcelResultViewer />
-        </div>
+        <ProviderDashboard />
       ) : (
-        <div>
-          <Title>참여자 대시보드</Title>
-          <p className="dashboard-subtitle">
-            Overview of the federated learning process
-          </p>
-          <DashboardCard />
-          <ExcelResultViewer />
-        </div>
+        <CustomerDashboard />
       )}
     </Container>
   );
@@ -79,11 +63,4 @@ const Container = styled.div`
   background-color: white;
   height: 100%;
   padding: 2rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #111827;
-  text-align: center;
 `;
