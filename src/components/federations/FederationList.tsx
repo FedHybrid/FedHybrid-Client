@@ -8,6 +8,7 @@ import LoadingView from "../common/LoadingView";
 import ErrorView from "../common/ErrorView";
 import { toast } from "sonner";
 import { Path } from "@/constants/Path";
+import { SquarePen, Trash } from "lucide-react";
 
 interface Instance {
   id: number;
@@ -93,20 +94,16 @@ export default function FederationList() {
               <td className="instance-port">{instance.port}</td>
               <td>
                 <div className="instance-actions">
-                  <button
-                    className="action-button"
+                  <SquarePen
+                    color="#010101"
                     onClick={() =>
                       router.push(`/instance/create?id=${instance.id}`)
                     }
-                  >
-                    수정
-                  </button>
-                  <button
-                    className="action-button blue-hover"
+                  />
+                  <Trash
+                    color="#010101"
                     onClick={() => handleDelete(instance.id)}
-                  >
-                    삭제
-                  </button>
+                  />
                 </div>
               </td>
             </tr>

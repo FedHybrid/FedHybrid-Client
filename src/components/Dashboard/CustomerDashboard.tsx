@@ -8,9 +8,6 @@ export default function CustomerDashboard() {
   return (
     <Wrapper>
       <Title>참여자 대시보드</Title>
-      <p className="dashboard-subtitle">
-        Overview of the federated learning process
-      </p>
       <DashboardCard />
       <ExcelResultViewer />
     </Wrapper>
