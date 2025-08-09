@@ -68,7 +68,7 @@ export async function GET(request: Request) {
 
     // 연합 있을 때
     if (fed) {
-        const { data, error } = await supabase.from("participations").select('id, customer_id, instance_id').eq('federation_id', fed.id);
+        const { data, error } = await supabase.rpc('get_customer_with_email', { federation_uuid: fed.id });
         if (error) {
             console.log(error.message);
             return NextResponse.json({ error: "연합의 참여 정보 조회에 실패했습니다." }, { status: 400 });
