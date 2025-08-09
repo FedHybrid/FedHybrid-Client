@@ -3,12 +3,14 @@
 import DashboardCard from "./DashboardCard";
 import styled from "styled-components";
 import ExcelResultViewer from "./ExcelResultViewer";
+import FedHybridIntegration from "./FedHybridIntegration";
 
 export default function CustomerDashboard() {
   return (
     <Wrapper>
       <Title>참여자 대시보드</Title>
       <DashboardCard />
+      <FedHybridIntegration />
       <ExcelResultViewer />
     </Wrapper>
   );
