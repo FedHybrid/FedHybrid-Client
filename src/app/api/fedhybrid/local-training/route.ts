@@ -133,11 +133,41 @@ export async function POST(request: NextRequest) {
       let errorOutput = '';
 
       pythonProcess.stdout.on('data', (data) => {
-        output += data.toString();
+        const chunk = data.toString();
+        output += chunk;
+        
+        // 실시간 로그 출력 (개발 환경)
+        console.log('[Python stdout]:', chunk.trim());
+        
+        // 각 줄을 개별적으로 처리하여 프론트엔드로 전달
+        const lines = chunk.split('\n').filter(line => line.trim());
+        lines.forEach(line => {
+          console.log(`[FedHybrid-AI] ${line.trim()}`);
+          
+          // 실시간 로그 스트리밍으로 프론트엔드에 전달
+          if ((global as any).sendLogToClient) {
+            (global as any).sendLogToClient(line.trim(), 'python_output');
+          }
+        });
       });
 
       pythonProcess.stderr.on('data', (data) => {
-        errorOutput += data.toString();
+        const chunk = data.toString();
+        errorOutput += chunk;
+        
+        // 실시간 에러 출력 (개발 환경)
+        console.error('[Python stderr]:', chunk.trim());
+        
+        // 각 줄을 개별적으로 처리하여 프론트엔드로 전달
+        const lines = chunk.split('\n').filter(line => line.trim());
+        lines.forEach(line => {
+          console.error(`[FedHybrid-AI Error] ${line.trim()}`);
+          
+          // 실시간 로그 스트리밍으로 프론트엔드에 전달
+          if ((global as any).sendLogToClient) {
+            (global as any).sendLogToClient(`❌ ${line.trim()}`, 'python_error');
+          }
+        });
       });
 
       pythonProcess.on('close', (code) => {

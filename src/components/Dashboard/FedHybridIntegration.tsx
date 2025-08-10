@@ -27,14 +27,24 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
   const [trainingLogs, setTrainingLogs] = useState<string[]>([]);
   const [showLogs, setShowLogs] = useState(true); // 기본적으로 로그 표시
   const [currentLog, setCurrentLog] = useState<string>('');
+  const maxLogs = 50; // 최대 로그 개수 제한
 
-  // 서버 상태 확인
+  // 서버 상태 확인 (타임아웃 및 에러 처리 개선)
   const checkServerStatus = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch('/api/fedhybrid?action=status');
+      // 타임아웃 설정 (5초)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch('/api/fedhybrid?action=status', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
         throw new Error('서버 상태를 확인할 수 없습니다.');
       }
@@ -42,7 +52,12 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
       const data = await response.json();
       setServerStatus(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('서버 응답 시간이 초과되었습니다. FedHybrid-AI 서버가 실행 중인지 확인해주세요.');
+      } else {
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      }
+      console.error('서버 상태 확인 실패:', err);
     } finally {
       setIsLoading(false);
     }
@@ -76,9 +91,59 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
     }
   };
 
-  // 실시간 로그 업데이트 함수
+  // 실시간 로그 업데이트 함수 (성능 최적화)
   const updateTrainingLog = (message: string) => {
-    setTrainingLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}`;
+    
+    setTrainingLogs(prev => {
+      const newLogs = [...prev, logEntry];
+      // 최대 로그 개수 제한으로 메모리 사용량 제어
+      if (newLogs.length > maxLogs) {
+        return newLogs.slice(-maxLogs);
+      }
+      return newLogs;
+    });
+  };
+
+  // 실시간 로그 스트리밍
+  const startLogStreaming = () => {
+    updateTrainingLog('📋 실시간 로그 스트리밍 시작...');
+    
+    // Server-Sent Events를 사용한 실시간 로그 스트리밍
+    const eventSource = new EventSource('/api/fedhybrid/logs');
+    
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.message) {
+          // 로그 타입에 따른 처리
+          if (data.type === 'python_output') {
+            // Python 출력 로그
+            updateTrainingLog(`🐍 ${data.message}`);
+          } else if (data.type === 'python_error') {
+            // Python 에러 로그
+            updateTrainingLog(`❌ ${data.message}`);
+          } else if (data.type === 'heartbeat') {
+            // 하트비트는 표시하지 않음
+            return;
+          } else {
+            // 일반 로그
+            updateTrainingLog(data.message);
+          }
+        }
+      } catch (error) {
+        console.error('로그 파싱 오류:', error);
+      }
+    };
+    
+    eventSource.onerror = (error) => {
+      console.error('로그 스트리밍 오류:', error);
+      updateTrainingLog('❌ 로그 스트리밍 연결 오류');
+      eventSource.close();
+    };
+    
+    return eventSource;
   };
 
   // 학습 시작
@@ -94,6 +159,9 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
     setShowLogs(true); // 로그를 항상 표시
     setTrainingStatus('모델 다운로드 중...');
 
+    // 로그 스트리밍 시작
+    let eventSource: EventSource | null = null;
+    
     try {
       // 1단계: 모델 다운로드
       updateTrainingLog('📥 서버에서 글로벌 모델 다운로드 중...');
@@ -104,40 +172,64 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
       setTrainingStatus('모델 다운로드 완료. 로컬 학습 시작 중...');
       updateTrainingLog('✅ 글로벌 모델 다운로드 완료');
 
-      // 2단계: 로컬 학습 시작
+      // 2단계: 실시간 로그 스트리밍 시작
+      updateTrainingLog('🔄 실시간 로그 스트리밍 시작...');
+      eventSource = startLogStreaming();
+
+      // 3단계: 로컬 학습 시작
       updateTrainingLog('🚀 FedHybrid-AI 클라이언트로 로컬 학습 시작...');
       updateTrainingLog('📁 파일 업로드 중...');
       const formData = new FormData();
       formData.append('file', uploadedFile);
 
       updateTrainingLog('⚙️ Python 스크립트 실행 중...');
+      setTrainingStatus('로컬 학습 진행 중... (실시간 로그를 확인하세요)');
+      
       const response = await fetch('/api/fedhybrid/local-training', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('로컬 학습을 시작할 수 없습니다.');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || '로컬 학습을 시작할 수 없습니다.');
       }
 
       const data = await response.json();
-      setTrainingStatus('로컬 학습이 완료되었습니다!');
       
-      // 학습 로그 추가
-      if (data.output) {
-        const logs = data.output.split('\n').filter((log: string) => log.trim());
-        setTrainingLogs(prev => [...prev, ...logs]);
-        setShowLogs(true);
+      if (data.success) {
+        setTrainingStatus('로컬 학습이 완료되었습니다!');
+        updateTrainingLog('🎉 로컬 학습 완료! 예측 결과가 생성되었습니다.');
+        
+        // 학습 로그 추가
+        if (data.output) {
+          const logs = data.output.split('\n').filter((log: string) => log.trim());
+          logs.forEach((log: string) => updateTrainingLog(log));
+        }
+        
+        updateTrainingLog('📊 AI 학습 결과 컴포넌트에서 결과를 확인하세요.');
+        
+        // 학습 완료 이벤트 발생 (ExcelResultViewer 새로고침 트리거)
+        const trainingCompleteEvent = new CustomEvent('training-complete', {
+          detail: { timestamp: new Date().toISOString() }
+        });
+        window.dispatchEvent(trainingCompleteEvent);
+      } else {
+        throw new Error(data.error || '학습이 실패했습니다.');
       }
-      
-      setTrainingLogs(prev => [...prev, '🎉 로컬 학습 완료! 예측 결과를 다운로드할 수 있습니다.']);
       
       // 서버 상태 다시 확인
       setTimeout(checkServerStatus, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
-      setTrainingLogs(prev => [...prev, `❌ 오류 발생: ${err instanceof Error ? err.message : '알 수 없는 오류'}`]);
+      updateTrainingLog(`❌ 오류 발생: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
+      setTrainingStatus('학습 중 오류가 발생했습니다.');
     } finally {
+      // 로그 스트리밍 종료
+      if (eventSource) {
+        eventSource.close();
+        updateTrainingLog('🔄 실시간 로그 스트리밍 종료');
+      }
       setIsLoading(false);
     }
   };
@@ -198,21 +290,21 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
     }
   };
 
-  // 컴포넌트 마운트 시 서버 상태 확인
+  // 컴포넌트 마운트 시 서버 상태 확인 (안전한 방식으로)
   useEffect(() => {
-    checkServerStatus();
+    const initializeComponent = async () => {
+      try {
+        await checkServerStatus();
+      } catch (err) {
+        console.error('초기화 중 오류 발생:', err);
+        // 서버 상태 확인 실패해도 컴포넌트는 정상 렌더링
+      }
+    };
+    
+    initializeComponent();
   }, []);
 
-  if (isLoading) {
-    return (
-      <LoadingWrapper>
-        <LoadingContent>
-          <Spinner />
-          <LoadingMessage>FedHybrid-AI 서버와 통신 중...</LoadingMessage>
-        </LoadingContent>
-      </LoadingWrapper>
-    );
-  }
+  // 로딩 중에도 전체 컴포넌트를 표시하되, 버튼만 비활성화
 
   return (
     <Wrapper className={className}>
@@ -289,7 +381,14 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
               disabled={!uploadedFile || isLoading}
               fullWidth
             >
-              모델 다운로드 & 로컬 학습 시작
+              {isLoading ? (
+                <>
+                  <Spinner style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
+                  학습 진행 중...
+                </>
+              ) : (
+                '모델 다운로드 & 로컬 학습 시작'
+              )}
             </Button>
           </UploadWrapper>
         </Section>
@@ -328,11 +427,33 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
               </LogHeader>
               {showLogs && (
                 <LogContent>
-                  {trainingLogs.map((log, index) => (
-                    <LogLine key={index}>
-                      {log}
+                  {trainingLogs.length === 0 ? (
+                    <LogLine style={{ color: '#6b7280', fontStyle: 'italic' }}>
+                      아직 로그가 없습니다. 학습을 시작하면 로그가 표시됩니다.
                     </LogLine>
-                  ))}
+                  ) : (
+                    <div>
+                      {trainingLogs.map((log, index) => (
+                        <LogLine 
+                          key={`log-${index}-${log.slice(0, 20)}`}
+                          style={{
+                            color: log.includes('❌') ? '#ef4444' : 
+                                   log.includes('✅') ? '#10b981' : 
+                                   log.includes('🔄') ? '#3b82f6' : 
+                                   log.includes('🐍') ? '#10b981' : '#d1d5db'
+                          }}
+                        >
+                          {log}
+                        </LogLine>
+                      ))}
+                      {/* 자동 스크롤을 위한 빈 div */}
+                      <div ref={(el) => {
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }} />
+                    </div>
+                  )}
                 </LogContent>
               )}
             </LogWrapper>
@@ -644,13 +765,35 @@ const LogContent = styled.div`
   max-height: 400px;
   overflow-y: auto;
   padding: 1rem;
+  background-color: #111827;
 `;
 
 const LogLine = styled.div`
   color: #d1d5db;
   font-family: 'Courier New', monospace;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.4;
   margin-bottom: 0.25rem;
   word-break: break-all;
+  white-space: pre-wrap;
+  
+  /* Python 출력 로그 스타일 */
+  &:contains('🐍') {
+    color: #10b981;
+  }
+  
+  /* 에러 로그 스타일 */
+  &:contains('❌') {
+    color: #ef4444;
+  }
+  
+  /* 성공 로그 스타일 */
+  &:contains('✅') {
+    color: #10b981;
+  }
+  
+  /* 진행 중 로그 스타일 */
+  &:contains('🔄') {
+    color: #3b82f6;
+  }
 `;

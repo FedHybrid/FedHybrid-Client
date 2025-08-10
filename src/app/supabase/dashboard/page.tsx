@@ -22,15 +22,30 @@ export default function Home() {
     const fetchServiceRole = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/me");
+        // 타임아웃 설정 (5초)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const res = await fetch("/api/me", {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
         setRole(data.service_role);
       } catch (e: any) {
-        setError(e.message || "조회 실패");
+        if (e.name === 'AbortError') {
+          setError("서버 응답 시간이 초과되었습니다.");
+        } else {
+          setError(e.message || "조회 실패");
+        }
+        console.error('사용자 역할 조회 실패:', e);
       }
       setLoading(false);
     };
+    
     fetchServiceRole();
   }, []);
 
@@ -50,11 +65,13 @@ export default function Home() {
 
   return (
     <Container>
-      {role === KeyStorage.PROVIDER ? (
-        <ProviderDashboard />
-      ) : (
-        <CustomerDashboard />
-      )}
+      <div style={{ minHeight: '100vh' }}>
+        {role === KeyStorage.PROVIDER ? (
+          <ProviderDashboard />
+        ) : (
+          <CustomerDashboard />
+        )}
+      </div>
     </Container>
   );
 }

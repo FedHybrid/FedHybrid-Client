@@ -20,20 +20,38 @@ const ExcelResultViewer: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [hasTrainingCompleted, setHasTrainingCompleted] = useState(false);
+  const maxRetries = 3;
 
   const fetchExcelData = async () => {
+    // 최대 재시도 횟수 초과 시 중단
+    if (retryCount >= maxRetries) {
+      setError('최대 재시도 횟수를 초과했습니다. 나중에 다시 시도해주세요.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch('/api/training');
+      // FedHybrid 로컬 학습 결과 API 사용 (타임아웃 설정)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+      
+      const response = await fetch('/api/fedhybrid/local-training', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         if (response.status === 404) {
-          setError('아직 학습 결과 파일이 없습니다. AI 모델 학습을 먼저 진행해주세요.');
+          setError('아직 학습 결과 파일이 없습니다. FedHybrid-AI 모델 학습을 먼저 진행해주세요.');
         } else {
           setError('결과 파일을 불러오는데 실패했습니다.');
         }
+        setRetryCount(prev => prev + 1);
         return;
       }
 
@@ -77,10 +95,16 @@ const ExcelResultViewer: React.FC = () => {
       }
 
       setExcelData({ columns, rows, summary });
+      setRetryCount(0); // 성공 시 재시도 카운트 리셋
       
     } catch (err) {
       console.error('Excel 파싱 오류:', err);
-      setError('결과 파일을 읽는데 실패했습니다.');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('요청 시간이 초과되었습니다. 나중에 다시 시도해주세요.');
+      } else {
+        setError('결과 파일을 읽는데 실패했습니다.');
+      }
+      setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -88,7 +112,16 @@ const ExcelResultViewer: React.FC = () => {
 
   const downloadExcel = async () => {
     try {
-      const response = await fetch('/api/training');
+      // FedHybrid 로컬 학습 결과 API 사용 (타임아웃 설정)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 다운로드는 30초 타임아웃
+      
+      const response = await fetch('/api/fedhybrid/local-training', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -101,20 +134,66 @@ const ExcelResultViewer: React.FC = () => {
         document.body.removeChild(a);
       }
     } catch (err) {
-      setError('다운로드 중 오류가 발생했습니다.');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('다운로드 시간이 초과되었습니다. 나중에 다시 시도해주세요.');
+      } else {
+        setError('다운로드 중 오류가 발생했습니다.');
+      }
     }
   };
 
+  // 학습이 완료된 경우에만 데이터 불러오기
   useEffect(() => {
-    fetchExcelData();
-  }, []);
+    if (hasTrainingCompleted) {
+      fetchExcelData();
+    }
+  }, [hasTrainingCompleted]); // 학습 완료 상태가 변경될 때만 실행
+
+  // 이벤트 리스너와 인터벌은 별도 useEffect로 분리
+  useEffect(() => {
+    // 학습 완료 이벤트 리스너 추가
+    const handleTrainingComplete = () => {
+      console.log('학습 완료 이벤트 수신, 결과 새로고침');
+      setHasTrainingCompleted(true); // 학습 완료 상태 설정
+      setTimeout(() => {
+        fetchExcelData();
+      }, 2000); // 2초 후 새로고침 (파일 생성 대기)
+    };
+    
+    // 커스텀 이벤트 리스너 등록
+    window.addEventListener('training-complete', handleTrainingComplete);
+    
+    return () => {
+      window.removeEventListener('training-complete', handleTrainingComplete);
+    };
+  }, []); // 한 번만 등록
+
+  // 주기적 체크 완전 비활성화 (성능 문제 해결을 위해)
+  // useEffect(() => {
+  //   if (excelData || retryCount >= maxRetries) return;
+  //   const intervalId = setInterval(() => {
+  //     if (!loading && retryCount < maxRetries) {
+  //       fetchExcelData();
+  //     }
+  //   }, 30000);
+  //   return () => {
+  //     clearInterval(intervalId);
+  //   };
+  // }, [excelData, loading, retryCount]);
 
   if (loading) {
     return (
       <Container>
         <Header>
           <Title>AI 학습 결과</Title>
-          <RefreshButton onClick={fetchExcelData} disabled={loading}>
+          <RefreshButton onClick={() => {
+            setRetryCount(0); // 수동 새로고침 시 재시도 카운트 리셋
+            if (hasTrainingCompleted) {
+              fetchExcelData();
+            } else {
+              setError('학습이 완료된 후에 결과를 확인할 수 있습니다.');
+            }
+          }} disabled={loading}>
             <RefreshCw size={16} className={loading ? 'spinning' : ''} />
             새로고침
           </RefreshButton>
@@ -132,7 +211,14 @@ const ExcelResultViewer: React.FC = () => {
       <Container>
         <Header>
           <Title>AI 학습 결과</Title>
-          <RefreshButton onClick={fetchExcelData}>
+          <RefreshButton onClick={() => {
+            setRetryCount(0); // 수동 새로고침 시 재시도 카운트 리셋
+            if (hasTrainingCompleted) {
+              fetchExcelData();
+            } else {
+              setError('학습이 완료된 후에 결과를 확인할 수 있습니다.');
+            }
+          }}>
             <RefreshCw size={16} />
             새로고침
           </RefreshButton>
@@ -150,14 +236,28 @@ const ExcelResultViewer: React.FC = () => {
       <Container>
         <Header>
           <Title>AI 학습 결과</Title>
-          <RefreshButton onClick={fetchExcelData}>
+          <RefreshButton onClick={() => {
+            setRetryCount(0); // 수동 새로고침 시 재시도 카운트 리셋
+            if (hasTrainingCompleted) {
+              fetchExcelData();
+            } else {
+              setError('학습이 완료된 후에 결과를 확인할 수 있습니다.');
+            }
+          }}>
             <RefreshCw size={16} />
             새로고침
           </RefreshButton>
         </Header>
         <EmptyContainer>
           <FileText size={48} color="#6b7280" />
-          <EmptyText>학습 결과가 없습니다.</EmptyText>
+          {hasTrainingCompleted ? (
+            <EmptyText>학습이 완료되었지만 결과 파일을 찾을 수 없습니다. 새로고침을 시도해보세요.</EmptyText>
+          ) : (
+            <EmptyText>
+              FedHybrid-AI 모델 학습을 먼저 진행해주세요.<br />
+              학습이 완료되면 자동으로 결과가 표시됩니다.
+            </EmptyText>
+          )}
         </EmptyContainer>
       </Container>
     );
@@ -176,7 +276,14 @@ const ExcelResultViewer: React.FC = () => {
             <Download size={16} />
             엑셀 다운로드
           </DownloadButton>
-          <RefreshButton onClick={fetchExcelData}>
+          <RefreshButton onClick={() => {
+            setRetryCount(0); // 수동 새로고침 시 재시도 카운트 리셋
+            if (hasTrainingCompleted) {
+              fetchExcelData();
+            } else {
+              setError('학습이 완료된 후에 결과를 확인할 수 있습니다.');
+            }
+          }}>
             <RefreshCw size={16} />
             새로고침
           </RefreshButton>
