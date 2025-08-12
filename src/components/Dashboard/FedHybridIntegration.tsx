@@ -1,7 +1,17 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef } from "react";
+import styled from "styled-components";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface ServerStatus {
   current_round: number;
@@ -18,46 +28,54 @@ interface FedHybridIntegrationProps {
   className?: string;
 }
 
-export default function FedHybridIntegration({ className = '' }: FedHybridIntegrationProps) {
+export default function FedHybridIntegration({
+  className = "",
+}: FedHybridIntegrationProps) {
   const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [trainingStatus, setTrainingStatus] = useState<string>('');
+  const [trainingStatus, setTrainingStatus] = useState<string>("");
   const [trainingLogs, setTrainingLogs] = useState<string[]>([]);
   const [showLogs, setShowLogs] = useState(true); // 기본적으로 로그 표시
-  const [currentLog, setCurrentLog] = useState<string>('');
+  const [currentLog, setCurrentLog] = useState<string>("");
   const maxLogs = 50; // 최대 로그 개수 제한
+  const [accuracyData, setAccuracyData] = useState([]); // 정확도 차트 데이터
+  const lastRoundRef = useRef<number>(0);
 
   // 서버 상태 확인 (타임아웃 및 에러 처리 개선)
   const checkServerStatus = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // 타임아웃 설정 (5초)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const response = await fetch('/api/fedhybrid?action=status', {
-        signal: controller.signal
+
+      const response = await fetch("/api/fedhybrid?action=status", {
+        signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
-        throw new Error('서버 상태를 확인할 수 없습니다.');
+        throw new Error("서버 상태를 확인할 수 없습니다.");
       }
-      
+
       const data = await response.json();
       setServerStatus(data);
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        setError('서버 응답 시간이 초과되었습니다. FedHybrid-AI 서버가 실행 중인지 확인해주세요.');
+      if (err instanceof Error && err.name === "AbortError") {
+        setError(
+          "서버 응답 시간이 초과되었습니다. FedHybrid-AI 서버가 실행 중인지 확인해주세요."
+        );
       } else {
-        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+        setError(
+          err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+        );
       }
-      console.error('서버 상태 확인 실패:', err);
+      console.error("서버 상태 확인 실패:", err);
     } finally {
       setIsLoading(false);
     }
@@ -68,24 +86,37 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
     const file = event.target.files?.[0];
     if (file) {
       // 파일 형식 검증
-      const allowedTypes = ['text/csv', 'application/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
-      const fileExtension = file.name.toLowerCase().split('.').pop();
-      
-      if (!allowedTypes.includes(file.type) && !['csv', 'xlsx', 'xls'].includes(fileExtension || '')) {
-        setError('CSV 또는 Excel 파일(.xlsx, .xls)만 업로드 가능합니다.');
-        event.target.value = '';
+      const allowedTypes = [
+        "text/csv",
+        "application/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+      ];
+      const fileExtension = file.name.toLowerCase().split(".").pop();
+
+      if (
+        !allowedTypes.includes(file.type) &&
+        !["csv", "xlsx", "xls"].includes(fileExtension || "")
+      ) {
+        setError("CSV 또는 Excel 파일(.xlsx, .xls)만 업로드 가능합니다.");
+        event.target.value = "";
         setUploadedFile(null);
         return;
       }
 
       // 예측 결과 파일 업로드 방지
-      if (file.name.includes('diabetic_predictions') || file.name.includes('prediction_results')) {
-        setError('예측 결과 파일은 업로드할 수 없습니다. 원본 데이터 파일만 업로드해주세요.');
-        event.target.value = '';
+      if (
+        file.name.includes("diabetic_predictions") ||
+        file.name.includes("prediction_results")
+      ) {
+        setError(
+          "예측 결과 파일은 업로드할 수 없습니다. 원본 데이터 파일만 업로드해주세요."
+        );
+        event.target.value = "";
         setUploadedFile(null);
         return;
       }
-      
+
       setUploadedFile(file);
       setError(null);
     }
@@ -95,8 +126,8 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
   const updateTrainingLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = `[${timestamp}] ${message}`;
-    
-    setTrainingLogs(prev => {
+
+    setTrainingLogs((prev) => {
       const newLogs = [...prev, logEntry];
       // 최대 로그 개수 제한으로 메모리 사용량 제어
       if (newLogs.length > maxLogs) {
@@ -104,27 +135,51 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
       }
       return newLogs;
     });
+
+    // 로그에서 차트 데이터 추출
+    const roundMatch = message.match(/라운드\s*(\d+)(?:\/\d+)?\s*시작/);
+    const accMatch = message.match(/🎯\s*학습 후 정확도:\s*([\d.]+)%/);
+    if (accMatch) {
+      const accuracy = parseFloat(accMatch[1]);
+      
+      let round = roundMatch
+        ? parseInt(roundMatch[1], 10)
+        : lastRoundRef.current;
+
+      lastRoundRef.current = round;
+
+      setAccuracyData((prev) => {
+        // 중복 방지: 같은 라운드 데이터가 이미 있으면 갱신하지 않음
+        if (prev.some((d) => d.round === round)) return prev;
+        return [...prev, { round, accuracy }];
+      });
+    }
+
+    const roundStartMatch = message.match(/=== 라운드 (\d+)\/\d+ 시작 ===/);
+    if (roundStartMatch) {
+      lastRoundRef.current = parseInt(roundStartMatch[1], 10);
+    }
   };
 
   // 실시간 로그 스트리밍
   const startLogStreaming = () => {
-    updateTrainingLog('📋 실시간 로그 스트리밍 시작...');
-    
+    updateTrainingLog("📋 실시간 로그 스트리밍 시작...");
+
     // Server-Sent Events를 사용한 실시간 로그 스트리밍
-    const eventSource = new EventSource('/api/fedhybrid/logs');
-    
+    const eventSource = new EventSource("/api/fedhybrid/logs");
+
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.message) {
           // 로그 타입에 따른 처리
-          if (data.type === 'python_output') {
+          if (data.type === "python_output") {
             // Python 출력 로그
             updateTrainingLog(`🐍 ${data.message}`);
-          } else if (data.type === 'python_error') {
+          } else if (data.type === "python_error") {
             // Python 에러 로그
             updateTrainingLog(`❌ ${data.message}`);
-          } else if (data.type === 'heartbeat') {
+          } else if (data.type === "heartbeat") {
             // 하트비트는 표시하지 않음
             return;
           } else {
@@ -133,23 +188,23 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
           }
         }
       } catch (error) {
-        console.error('로그 파싱 오류:', error);
+        console.error("로그 파싱 오류:", error);
       }
     };
-    
+
     eventSource.onerror = (error) => {
-      console.error('로그 스트리밍 오류:', error);
-      updateTrainingLog('❌ 로그 스트리밍 연결 오류');
+      console.error("로그 스트리밍 오류:", error);
+      updateTrainingLog("❌ 로그 스트리밍 연결 오류");
       eventSource.close();
     };
-    
+
     return eventSource;
   };
 
   // 학습 시작
   const startTraining = async () => {
     if (!uploadedFile) {
-      setError('파일을 선택해주세요.');
+      setError("파일을 선택해주세요.");
       return;
     }
 
@@ -157,78 +212,86 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
     setError(null);
     setTrainingLogs([]);
     setShowLogs(true); // 로그를 항상 표시
-    setTrainingStatus('모델 다운로드 중...');
+    setTrainingStatus("모델 다운로드 중...");
 
     // 로그 스트리밍 시작
     let eventSource: EventSource | null = null;
-    
+
     try {
       // 1단계: 모델 다운로드
-      updateTrainingLog('📥 서버에서 글로벌 모델 다운로드 중...');
-      const modelResponse = await fetch('/api/fedhybrid?action=get_model');
+      updateTrainingLog("📥 서버에서 글로벌 모델 다운로드 중...");
+      const modelResponse = await fetch("/api/fedhybrid?action=get_model");
       if (!modelResponse.ok) {
-        throw new Error('모델을 다운로드할 수 없습니다.');
+        throw new Error("모델을 다운로드할 수 없습니다.");
       }
-      setTrainingStatus('모델 다운로드 완료. 로컬 학습 시작 중...');
-      updateTrainingLog('✅ 글로벌 모델 다운로드 완료');
+      setTrainingStatus("모델 다운로드 완료. 로컬 학습 시작 중...");
+      updateTrainingLog("✅ 글로벌 모델 다운로드 완료");
 
       // 2단계: 실시간 로그 스트리밍 시작
-      updateTrainingLog('🔄 실시간 로그 스트리밍 시작...');
+      updateTrainingLog("🔄 실시간 로그 스트리밍 시작...");
       eventSource = startLogStreaming();
 
       // 3단계: 로컬 학습 시작
-      updateTrainingLog('🚀 FedHybrid-AI 클라이언트로 로컬 학습 시작...');
-      updateTrainingLog('📁 파일 업로드 중...');
+      updateTrainingLog("🚀 FedHybrid-AI 클라이언트로 로컬 학습 시작...");
+      updateTrainingLog("📁 파일 업로드 중...");
       const formData = new FormData();
-      formData.append('file', uploadedFile);
+      formData.append("file", uploadedFile);
 
-      updateTrainingLog('⚙️ Python 스크립트 실행 중...');
-      setTrainingStatus('로컬 학습 진행 중... (실시간 로그를 확인하세요)');
-      
-      const response = await fetch('/api/fedhybrid/local-training', {
-        method: 'POST',
+      updateTrainingLog("⚙️ Python 스크립트 실행 중...");
+      setTrainingStatus("로컬 학습 진행 중... (실시간 로그를 확인하세요)");
+
+      const response = await fetch("/api/fedhybrid/local-training", {
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || '로컬 학습을 시작할 수 없습니다.');
+        throw new Error(errorData.error || "로컬 학습을 시작할 수 없습니다.");
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
-        setTrainingStatus('로컬 학습이 완료되었습니다!');
-        updateTrainingLog('🎉 로컬 학습 완료! 예측 결과가 생성되었습니다.');
-        
+        setTrainingStatus("로컬 학습이 완료되었습니다!");
+        updateTrainingLog("🎉 로컬 학습 완료! 예측 결과가 생성되었습니다.");
+
         // 학습 로그 추가
         if (data.output) {
-          const logs = data.output.split('\n').filter((log: string) => log.trim());
+          const logs = data.output
+            .split("\n")
+            .filter((log: string) => log.trim());
           logs.forEach((log: string) => updateTrainingLog(log));
         }
-        
-        updateTrainingLog('📊 AI 학습 결과 컴포넌트에서 결과를 확인하세요.');
-        
+
+        updateTrainingLog("📊 AI 학습 결과 컴포넌트에서 결과를 확인하세요.");
+
         // 학습 완료 이벤트 발생 (ExcelResultViewer 새로고침 트리거)
-        const trainingCompleteEvent = new CustomEvent('training-complete', {
-          detail: { timestamp: new Date().toISOString() }
+        const trainingCompleteEvent = new CustomEvent("training-complete", {
+          detail: { timestamp: new Date().toISOString() },
         });
         window.dispatchEvent(trainingCompleteEvent);
       } else {
-        throw new Error(data.error || '학습이 실패했습니다.');
+        throw new Error(data.error || "학습이 실패했습니다.");
       }
-      
+
       // 서버 상태 다시 확인
       setTimeout(checkServerStatus, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
-      updateTrainingLog(`❌ 오류 발생: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
-      setTrainingStatus('학습 중 오류가 발생했습니다.');
+      setError(
+        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+      );
+      updateTrainingLog(
+        `❌ 오류 발생: ${
+          err instanceof Error ? err.message : "알 수 없는 오류"
+        }`
+      );
+      setTrainingStatus("학습 중 오류가 발생했습니다.");
     } finally {
       // 로그 스트리밍 종료
       if (eventSource) {
         eventSource.close();
-        updateTrainingLog('🔄 실시간 로그 스트리밍 종료');
+        updateTrainingLog("🔄 실시간 로그 스트리밍 종료");
       }
       setIsLoading(false);
     }
@@ -240,23 +303,25 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
     setError(null);
 
     try {
-      const response = await fetch('/api/fedhybrid/local-training');
-      
+      const response = await fetch("/api/fedhybrid/local-training");
+
       if (!response.ok) {
-        throw new Error('예측 결과를 다운로드할 수 없습니다.');
+        throw new Error("예측 결과를 다운로드할 수 없습니다.");
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = 'prediction_results.xlsx';
+      a.download = "prediction_results.xlsx";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      setError(
+        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -268,23 +333,25 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
     setError(null);
 
     try {
-      const response = await fetch('/api/fedhybrid?action=get_model');
-      
+      const response = await fetch("/api/fedhybrid?action=get_model");
+
       if (!response.ok) {
-        throw new Error('모델을 다운로드할 수 없습니다.');
+        throw new Error("모델을 다운로드할 수 없습니다.");
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = 'global_model.pth';
+      a.download = "global_model.pth";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      setError(
+        err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -296,13 +363,29 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
       try {
         await checkServerStatus();
       } catch (err) {
-        console.error('초기화 중 오류 발생:', err);
+        console.error("초기화 중 오류 발생:", err);
         // 서버 상태 확인 실패해도 컴포넌트는 정상 렌더링
       }
     };
-    
+
     initializeComponent();
   }, []);
+
+  // 차트 커스텀 툴팁
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <TooltipBox>
+          <TooltipLabel>{`Round ${label}`}</TooltipLabel>
+          <TooltipValue>
+            <span>정확도: </span>
+            {`${payload[0].value}%`}
+          </TooltipValue>
+        </TooltipBox>
+      );
+    }
+    return null;
+  };
 
   // 로딩 중에도 전체 컴포넌트를 표시하되, 버튼만 비활성화
 
@@ -310,14 +393,14 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
     <Wrapper className={className}>
       <Card>
         <Title>FedHybrid-AI 연동</Title>
-        
+
         {error && (
           <ErrorWrapper>
             <ErrorTitle>오류 발생</ErrorTitle>
             <ErrorDescription>{error}</ErrorDescription>
           </ErrorWrapper>
         )}
-        
+
         {trainingStatus && (
           <StatusWrapper>
             <StatusTitle>학습 진행 상황</StatusTitle>
@@ -336,21 +419,22 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
               </StatusCard>
               <StatusCard>
                 <StatusLabel>활성 라운드</StatusLabel>
-                <StatusValue>{Object.keys(serverStatus.active_rounds).length}</StatusValue>
+                <StatusValue>
+                  {Object.keys(serverStatus.active_rounds).length}
+                </StatusValue>
               </StatusCard>
               <StatusCard>
                 <StatusLabel>목표 클라이언트</StatusLabel>
-                <StatusValue>{serverStatus.round_config?.target_clients || 'N/A'}</StatusValue>
+                <StatusValue>
+                  {serverStatus.round_config?.target_clients || "N/A"}
+                </StatusValue>
               </StatusCard>
             </StatusGrid>
           ) : (
             <NoDataMessage>서버에 연결할 수 없습니다.</NoDataMessage>
           )}
-          
-          <Button 
-            onClick={checkServerStatus}
-            disabled={isLoading}
-          >
+
+          <Button onClick={checkServerStatus} disabled={isLoading}>
             상태 새로고침
           </Button>
         </Section>
@@ -359,11 +443,19 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
         <Section>
           <SectionTitle>로컬 학습</SectionTitle>
           <TrainingDescription>
-            <p>1. CSV 또는 Excel 파일을 업로드하면 서버에서 모델을 다운로드합니다.</p>
+            <p>
+              1. CSV 또는 Excel 파일을 업로드하면 서버에서 모델을
+              다운로드합니다.
+            </p>
             <p>2. Excel 파일은 자동으로 CSV로 변환됩니다.</p>
             <p>3. 다운로드한 모델로 로컬에서 학습을 진행합니다.</p>
             <p>4. 학습 완료 후 예측 결과를 생성합니다.</p>
-            <p><strong>⚠️ 주의: 예측 결과 파일(diabetic_predictions.xlsx, prediction_results.xlsx)은 업로드할 수 없습니다.</strong></p>
+            <p>
+              <strong>
+                ⚠️ 주의: 예측 결과 파일(diabetic_predictions.xlsx,
+                prediction_results.xlsx)은 업로드할 수 없습니다.
+              </strong>
+            </p>
           </TrainingDescription>
           <UploadWrapper>
             <FileInput
@@ -372,22 +464,26 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
               onChange={handleFileUpload}
             />
             {uploadedFile && (
-              <FileInfo>
-                선택된 파일: {uploadedFile.name}
-              </FileInfo>
+              <FileInfo>선택된 파일: {uploadedFile.name}</FileInfo>
             )}
-            <Button 
+            <Button
               onClick={startTraining}
               disabled={!uploadedFile || isLoading}
               fullWidth
             >
               {isLoading ? (
                 <>
-                  <Spinner style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
+                  <Spinner
+                    style={{
+                      width: "1rem",
+                      height: "1rem",
+                      marginRight: "0.5rem",
+                    }}
+                  />
                   학습 진행 중...
                 </>
               ) : (
-                '모델 다운로드 & 로컬 학습 시작'
+                "모델 다운로드 & 로컬 학습 시작"
               )}
             </Button>
           </UploadWrapper>
@@ -397,14 +493,14 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
         <Section>
           <SectionTitle>결과 다운로드</SectionTitle>
           <DownloadGrid>
-            <Button 
+            <Button
               onClick={downloadPredictions}
               disabled={isLoading}
               variant="outline"
             >
               예측 결과 다운로드
             </Button>
-            <Button 
+            <Button
               onClick={downloadModel}
               disabled={isLoading}
               variant="outline"
@@ -414,6 +510,97 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
           </DownloadGrid>
         </Section>
 
+        {/* 정확도 차트 */}
+        {trainingLogs.length > 0 && (
+          <Section>
+            <Header>
+              <SectionTitle>Round별 정확도 차트</SectionTitle>
+              <LegendInfo>
+                <LegendItem>
+                  <LegendDot />
+                  <span>정확도 (%)</span>
+                </LegendItem>
+                <span>총 {accuracyData.length} 라운드</span>
+              </LegendInfo>
+            </Header>
+
+            <ChartWrapper height={400}>
+              <ResponsiveContainer>
+                <LineChart
+                  data={accuracyData}
+                  margin={{
+                    top: 30,
+                    right: 30,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis
+                    dataKey="round"
+                    stroke="#6b7280"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    stroke="#6b7280"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    domain={[0, 100]}
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="accuracy"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+                    activeDot={{
+                      r: 6,
+                      stroke: "#3b82f6",
+                      strokeWidth: 2,
+                      fill: "#ffffff",
+                    }}
+                    name="정확도 (%)"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartWrapper>
+
+            <Stats>
+              <StatItem>
+                <StatLabel>최고 정확도</StatLabel>
+                <StatValue color="#16a34a">
+                  {Math.max(...accuracyData.map((d) => d.accuracy)).toFixed(2)}%
+                </StatValue>
+              </StatItem>
+              <StatItem>
+                <StatLabel>최저 정확도</StatLabel>
+                <StatValue color="#dc2626">
+                  {Math.min(...accuracyData.map((d) => d.accuracy)).toFixed(2)}%
+                </StatValue>
+              </StatItem>
+              <StatItem>
+                <StatLabel>평균 정확도</StatLabel>
+                <StatValue color="#2563eb">
+                  {(
+                    accuracyData.reduce((sum, d) => sum + d.accuracy, 0) /
+                    accuracyData.length
+                  ).toFixed(2)}
+                  %
+                </StatValue>
+              </StatItem>
+              <StatItem>
+                <StatLabel>현재 라운드</StatLabel>
+                <StatValue>{accuracyData.length}</StatValue>
+              </StatItem>
+            </Stats>
+          </Section>
+        )}
+
         {/* 학습 로그 */}
         {trainingLogs.length > 0 && (
           <Section>
@@ -422,36 +609,43 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
               <LogHeader>
                 <LogTitle>실시간 학습 과정</LogTitle>
                 <LogToggle onClick={() => setShowLogs(!showLogs)}>
-                  {showLogs ? '로그 숨기기' : '로그 보기'}
+                  {showLogs ? "로그 숨기기" : "로그 보기"}
                 </LogToggle>
               </LogHeader>
               {showLogs && (
                 <LogContent>
                   {trainingLogs.length === 0 ? (
-                    <LogLine style={{ color: '#6b7280', fontStyle: 'italic' }}>
+                    <LogLine style={{ color: "#6b7280", fontStyle: "italic" }}>
                       아직 로그가 없습니다. 학습을 시작하면 로그가 표시됩니다.
                     </LogLine>
                   ) : (
                     <div>
                       {trainingLogs.map((log, index) => (
-                        <LogLine 
+                        <LogLine
                           key={`log-${index}-${log.slice(0, 20)}`}
                           style={{
-                            color: log.includes('❌') ? '#ef4444' : 
-                                   log.includes('✅') ? '#10b981' : 
-                                   log.includes('🔄') ? '#3b82f6' : 
-                                   log.includes('🐍') ? '#10b981' : '#d1d5db'
+                            color: log.includes("❌")
+                              ? "#ef4444"
+                              : log.includes("✅")
+                              ? "#10b981"
+                              : log.includes("🔄")
+                              ? "#3b82f6"
+                              : log.includes("🐍")
+                              ? "#10b981"
+                              : "#d1d5db",
                           }}
                         >
                           {log}
                         </LogLine>
                       ))}
                       {/* 자동 스크롤을 위한 빈 div */}
-                      <div ref={(el) => {
-                        if (el) {
-                          el.scrollIntoView({ behavior: 'smooth' });
-                        }
-                      }} />
+                      <div
+                        ref={(el) => {
+                          if (el) {
+                            el.scrollIntoView({ behavior: "smooth" });
+                          }
+                        }}
+                      />
                     </div>
                   )}
                 </LogContent>
@@ -461,26 +655,30 @@ export default function FedHybridIntegration({ className = '' }: FedHybridIntegr
         )}
 
         {/* 성능 지표 */}
-        {serverStatus?.global_accuracies && serverStatus.global_accuracies.length > 0 && (
-          <Section>
-            <SectionTitle>학습 성능</SectionTitle>
-            <PerformanceWrapper>
-              <PerformanceLabel>최근 정확도</PerformanceLabel>
-              <PerformanceList>
-                {serverStatus.global_accuracies.slice(-5).map((accuracy, index) => (
-                  <PerformanceItem key={index}>
-                    <PerformanceRound>
-                      라운드 {serverStatus.global_accuracies.length - 4 + index}
-                    </PerformanceRound>
-                    <PerformanceValue>
-                      {(accuracy * 100).toFixed(2)}%
-                    </PerformanceValue>
-                  </PerformanceItem>
-                ))}
-              </PerformanceList>
-            </PerformanceWrapper>
-          </Section>
-        )}
+        {serverStatus?.global_accuracies &&
+          serverStatus.global_accuracies.length > 0 && (
+            <Section>
+              <SectionTitle>학습 성능</SectionTitle>
+              <PerformanceWrapper>
+                <PerformanceLabel>최근 정확도</PerformanceLabel>
+                <PerformanceList>
+                  {serverStatus.global_accuracies
+                    .slice(-5)
+                    .map((accuracy, index) => (
+                      <PerformanceItem key={index}>
+                        <PerformanceRound>
+                          라운드{" "}
+                          {serverStatus.global_accuracies.length - 4 + index}
+                        </PerformanceRound>
+                        <PerformanceValue>
+                          {(accuracy * 100).toFixed(2)}%
+                        </PerformanceValue>
+                      </PerformanceItem>
+                    ))}
+                </PerformanceList>
+              </PerformanceWrapper>
+            </Section>
+          )}
       </Card>
     </Wrapper>
   );
@@ -546,19 +744,21 @@ const StatusValue = styled.p`
 `;
 
 const Button = styled.button<{ variant?: string; fullWidth?: boolean }>`
-  background-color: ${props => props.variant === 'outline' ? 'transparent' : '#2563eb'};
-  color: ${props => props.variant === 'outline' ? '#2563eb' : 'white'};
+  background-color: ${(props) =>
+    props.variant === "outline" ? "transparent" : "#2563eb"};
+  color: ${(props) => (props.variant === "outline" ? "#2563eb" : "white")};
   border: 2px solid #2563eb;
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  width: ${props => props.fullWidth ? '100%' : 'auto'};
+  width: ${(props) => (props.fullWidth ? "100%" : "auto")};
 
   &:hover:not(:disabled) {
-    background-color: ${props => props.variant === 'outline' ? '#2563eb' : '#1d4ed8'};
-    color: ${props => props.variant === 'outline' ? 'white' : 'white'};
+    background-color: ${(props) =>
+      props.variant === "outline" ? "#2563eb" : "#1d4ed8"};
+    color: ${(props) => (props.variant === "outline" ? "white" : "white")};
   }
 
   &:disabled {
@@ -700,8 +900,12 @@ const Spinner = styled.div`
   margin: 0 auto 1rem auto;
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -770,30 +974,112 @@ const LogContent = styled.div`
 
 const LogLine = styled.div`
   color: #d1d5db;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.875rem;
   line-height: 1.4;
   margin-bottom: 0.25rem;
   word-break: break-all;
   white-space: pre-wrap;
-  
+
   /* Python 출력 로그 스타일 */
-  &:contains('🐍') {
+  &:contains("🐍") {
     color: #10b981;
   }
-  
+
   /* 에러 로그 스타일 */
-  &:contains('❌') {
+  &:contains("❌") {
     color: #ef4444;
   }
-  
+
   /* 성공 로그 스타일 */
-  &:contains('✅') {
+  &:contains("✅") {
     color: #10b981;
   }
-  
+
   /* 진행 중 로그 스타일 */
-  &:contains('🔄') {
+  &:contains("🔄") {
     color: #3b82f6;
+  }
+`;
+
+// 정확도 차트 스타일
+const Header = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+const LegendInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+`;
+
+const LegendItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const LegendDot = styled.div`
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: #3b82f6;
+  border-radius: 50%;
+`;
+
+const ChartWrapper = styled.div<{ height: number }>`
+  width: 100%;
+  height: ${({ height }) => height}px;
+`;
+
+const Stats = styled.div`
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+`;
+
+const StatItem = styled.div`
+  text-align: center;
+`;
+
+const StatLabel = styled.p`
+  font-size: 0.875rem;
+  color: #4b5563;
+`;
+
+const StatValue = styled.p<{ color?: string }>`
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: ${({ color }) => color || "#111827"};
+`;
+
+const TooltipBox = styled.div`
+  background: white;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+`;
+
+const TooltipLabel = styled.p`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+`;
+
+const TooltipValue = styled.p`
+  font-size: 0.875rem;
+  color: #2563eb;
+
+  span {
+    font-weight: 500;
   }
 `;
