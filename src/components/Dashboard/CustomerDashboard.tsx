@@ -3,11 +3,13 @@
 import styled from "styled-components";
 import ExcelResultViewer from "./ExcelResultViewer";
 import FedHybridIntegration from "./FedHybridIntegration";
+import { FederationParticipationViewer } from "./FederationParticipationViewer";
 
 export default function CustomerDashboard() {
   return (
     <Wrapper>
       <Title>참여자 대시보드</Title>
+      <FederationParticipationViewer />
       <FedHybridIntegration />
       <ExcelResultViewer />
     </Wrapper>
