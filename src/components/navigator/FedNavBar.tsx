@@ -6,11 +6,13 @@ import { createClient } from "@/utils/supabase/client";
 import { UserDropdown } from "./UserDropDown";
 import { KeyStorage } from "@/constants/KeyStorage";
 import { Path } from "@/constants/Path";
+import { useRouter } from "next/navigation";
 
 export default function FedNavBar() {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState("");
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     supabase.auth
@@ -54,7 +56,12 @@ export default function FedNavBar() {
   }, [user]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("로그아웃 실패:", error);
+    } else {
+      router.push(Path.MAIN);
+    }
   };
 
   return (
