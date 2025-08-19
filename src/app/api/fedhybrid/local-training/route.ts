@@ -104,9 +104,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // FedHybrid-AI 클라이언트 실행 (improved_client.py 사용)
+    // FedHybrid-AI 클라이언트 실행 (FedHBClient.py 사용)
     const aiDir = path.join(process.cwd(), '..', 'FedHybrid-AI');
-    const pythonScript = path.join(aiDir, 'improved_client.py');
+    const pythonScript = path.join(aiDir, 'FedHBClient.py');
 
     console.log('FedHybrid-AI 디렉토리:', aiDir);
     console.log('Python 스크립트:', pythonScript);
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     if (!fs.existsSync(pythonScript)) {
       console.error('Python 스크립트가 존재하지 않습니다:', pythonScript);
-      return NextResponse.json({ error: 'improved_client.py 파일을 찾을 수 없습니다.' }, { status: 500 });
+      return NextResponse.json({ error: 'FedHBClient.py 파일을 찾을 수 없습니다.' }, { status: 500 });
     }
 
     return new Promise((resolve) => {
