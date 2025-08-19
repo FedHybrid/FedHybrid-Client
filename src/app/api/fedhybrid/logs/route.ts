@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // 실시간 로그 스트리밍을 위한 Server-Sent Events
 export async function GET(request: NextRequest) {
@@ -16,12 +19,13 @@ export async function GET(request: NextRequest) {
   // ReadableStream을 사용한 실시간 스트리밍
   const stream = new ReadableStream({
     start(controller) {
+      const encoder = new TextEncoder();
       // 연결 시작 메시지
       const startMessage = `data: ${JSON.stringify({ 
         message: '🔄 실시간 로그 스트리밍이 시작되었습니다.',
         timestamp: new Date().toISOString()
       })}\n\n`;
-      controller.enqueue(new TextEncoder().encode(startMessage));
+      controller.enqueue(encoder.encode(startMessage));
 
       // 주기적으로 하트비트 전송 (연결 유지)
       const heartbeatInterval = setInterval(() => {
@@ -31,28 +35,34 @@ export async function GET(request: NextRequest) {
             timestamp: new Date().toISOString(),
             type: 'heartbeat'
           })}\n\n`;
-          controller.enqueue(new TextEncoder().encode(heartbeat));
+          controller.enqueue(encoder.encode(heartbeat));
         } catch (error) {
           console.error('하트비트 전송 실패:', error);
           clearInterval(heartbeatInterval);
         }
       }, 30000); // 30초마다 하트비트
 
-      // 클라이언트 연결 종료 시 정리
-      request.signal?.addEventListener('abort', () => {
+      // 클라이언트 연결 종료 시 정리 (단일 핸들러)
+      const onAbort = () => {
         clearInterval(heartbeatInterval);
+        delete (global as any).sendLogToClient;
         try {
           const closeMessage = `data: ${JSON.stringify({ 
             message: '🔌 로그 스트리밍 연결이 종료되었습니다.',
             timestamp: new Date().toISOString(),
             type: 'close'
           })}\n\n`;
-          controller.enqueue(new TextEncoder().encode(closeMessage));
+          controller.enqueue(encoder.encode(closeMessage));
+        } catch (error) {
+          console.error('스트림 종료 메시지 전송 중 오류:', error);
+        }
+        try {
           controller.close();
         } catch (error) {
           console.error('스트림 종료 중 오류:', error);
         }
-      });
+      };
+      request.signal?.addEventListener('abort', onAbort);
 
       // Python 프로세스 로그를 실시간으로 전달하는 함수
       const sendLogMessage = (message: string, type: string = 'log') => {
@@ -70,19 +80,6 @@ export async function GET(request: NextRequest) {
 
       // 전역 로그 핸들러 등록 (다른 API에서 사용할 수 있도록)
       (global as any).sendLogToClient = sendLogMessage;
-
-      // 연결 종료 시 정리
-      request.signal?.addEventListener('abort', () => {
-        clearInterval(heartbeatInterval);
-        delete (global as any).sendLogToClient;
-        try {
-          if (controller && controller.signal && controller.signal.aborted === false) {
-            controller.close();
-          }
-        } catch (error) {
-          console.error('스트림 종료 중 오류:', error);
-        }
-      });
     },
   });
 
@@ -96,8 +93,9 @@ export function streamPythonProcess(pythonScript: string, args: string[]) {
   return new ReadableStream({
     start(controller) {
       const aiDir = path.join(process.cwd(), '..', 'FedHybrid-AI');
-      
-      const pythonProcess = spawn('python', [pythonScript, ...args], {
+
+      const pythonBin = process.env.PYTHON_BIN || 'python3';
+      const pythonProcess = spawn(pythonBin, [pythonScript, ...args], {
         cwd: aiDir,
         stdio: ['pipe', 'pipe', 'pipe']
       });
