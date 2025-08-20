@@ -1,8 +1,43 @@
-# FedHybrid-Client
+```
+FedHybrid는 Federated Learning + Hybrid 에서 유래하여, 기존 연합 학습 (FL) 분야의
+이론들을 통합하여 상용화 목적에 부합하는 최적의 AI 연합 학습 환경 개발을 목표로 합니다.
+```
 
-FedHybrid 클라이언트 애플리케이션입니다.
+[![Watch the video](https://github.com/user-attachments/assets/c15441e0-71f6-49f0-807d-ed69e968725e)](https://youtu.be/MOwfVM7K7Wc?si=TjV8VLWX4CYSCrjR)
 
-## FedHybrid-AI 연동 설정
+## 🌟 프로젝트 주요 기능
+
+| 기능 | 설명 |
+| --- | --- |
+| **데이터 업로드** | CSV, XLSX 형식의 데이터 파일을 업로드하여 학습을 진행합니다. |
+| **실시간 학습 로그 및 정확도 차트 확인** | AI 서버에서 진행되는 학습 과정을 실시간으로 시각화하여 제공합니다. |
+| **결과 요약** | 학습 종료 시, 평균 정확도 및 예측 결과를 요약하여 제공합니다. |
+| **결과 엑셀 파일 시각화 및 다운로드** | 학습 완료 후 예측 결과 엑셀 데이터를 생성합니다. 화면에서 즉시 확인 가능하며, 엑셀 파일로도 다운로드할 수 있습니다. |
+
+<br/>
+
+## 📸 화면 캡쳐
+
+| 메인 페이지 | 소개 페이지 |
+|:---:|:---:|
+|<img width="1464" height="832" src="https://github.com/user-attachments/assets/13d3c250-8ff9-4d6c-aa55-be260775a32b" />|<img width="1464" height="832"  src="https://github.com/user-attachments/assets/4a9791a1-d91e-4cee-92f4-9ff82cda849c" />|
+<br/>
+
+| 대시보드 (데이터 업로드) | 대시보드 (결과 확인 및 다운로드) |
+|:---:|:---:|
+|<img src="https://github.com/user-attachments/assets/e34892e7-49d8-41d9-a990-32dd8e451059" align="center">|<img src="https://github.com/user-attachments/assets/b1446c58-68d9-4ae0-af96-b7d32cbc2cb8" align="center">|
+<br/>
+
+<div align="center">
+  
+| 인스턴스 리스트 |
+|:---:|
+|<img src="https://github.com/user-attachments/assets/2c7cf130-b27a-41bd-a693-e208c8853313" width="100%" align="center">|
+
+</div>
+<br/>
+
+## 🔗 FedHybrid-AI 연동 설정
 
 ### 1. 환경 변수 설정
 
@@ -35,7 +70,9 @@ python FedHBServer.py
 - **예측 결과 다운로드**: 학습 완료 후 예측 결과를 Excel 파일로 다운로드할 수 있습니다.
 - **모델 다운로드**: 학습된 모델을 다운로드할 수 있습니다.
 
-## 설치 및 실행
+<br/>
+
+## 🤖 설치 및 실행
 
 ```bash
 npm install
@@ -43,3 +80,42 @@ npm run dev
 ```
 
 애플리케이션은 `http://localhost:3000`에서 실행됩니다.
+
+<br/>
+
+## 🖥️ 기술 스택
+- Next.js
+- TypeScript
+- styled-components
+- ESLint
+- Prettier
+- Supabase
+
+<br/>
+
+## 📦 프로젝트 구조
+```
+├📂 src
+├──📂 app
+│   ├──📂 api # Next 서버 api 구현
+│   └──📂 screens # 각 화면을 구성하는 폴더, screens로 네이밍 대체
+├──📂 components
+├──📂 constants
+├──📂 lib
+├──📂 styles
+├──📂 types
+├──📂 utils
+└📂 upload # AI 학습 업로드 테스트 파일
+```  
+
+<br/>
+
+## 🧩 ARCHITECTURE
+
+<br/>
+
+## 📌 CONVENTION
+
+- [ Git Convention ](https://colossal-empress-cc5.notion.site/Git-Convention-24a6de7fa5b780c49e53c4944d4535f2?pvs=74)
+
+<br/>
