@@ -23,10 +23,21 @@ FedHybrid는 Federated Learning + Hybrid 에서 유래하여, 기존 연합 학�
 |<img width="1464" height="832" src="https://github.com/user-attachments/assets/13d3c250-8ff9-4d6c-aa55-be260775a32b" />|<img width="1464" height="832"  src="https://github.com/user-attachments/assets/4a9791a1-d91e-4cee-92f4-9ff82cda849c" />|
 <br/>
 
-| 대시보드 (데이터 업로드) | 대시보드 (결과 확인 및 다운로드) |
-|:---:|:---:|
-|<img src="https://github.com/user-attachments/assets/e34892e7-49d8-41d9-a990-32dd8e451059" align="center">|<img src="https://github.com/user-attachments/assets/b1446c58-68d9-4ae0-af96-b7d32cbc2cb8" align="center">|
-<br/>
+<div align="center">
+
+| 대시보드 (데이터 업로드) |
+|:---:|
+|<img src="https://github.com/user-attachments/assets/e34892e7-49d8-41d9-a990-32dd8e451059" width="100%" align="center">|
+
+</div>
+
+<div align="center">
+
+| 대시보드 (결과 확인 및 다운로드) |
+|:---:|
+|<img src="https://github.com/user-attachments/assets/b1446c58-68d9-4ae0-af96-b7d32cbc2cb8" width="100%" align="center">|
+
+</div>
 
 <div align="center">
   
@@ -111,6 +122,7 @@ npm run dev
 <br/>
 
 ## 🧩 ARCHITECTURE
+<img width="1920" height="1080" src="https://github.com/user-attachments/assets/b4f1ed5c-f170-4ad2-b0a8-f3630f9e53b2" />
 
 <br/>
 
