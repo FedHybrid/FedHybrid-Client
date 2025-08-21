@@ -78,6 +78,8 @@ FedHybrid는 Federated Learning + Hybrid 에서 유래하여, 기존 연합 학�
 ### 2. AI 아키텍쳐 구조
 <img width="1920" height="1080" src="https://github.com/user-attachments/assets/b4f1ed5c-f170-4ad2-b0a8-f3630f9e53b2" />
 
+<br/>
+
 ## 🔗 FedHybrid-AI 연동 설정
 
 ### 1. 환경 변수 설정
