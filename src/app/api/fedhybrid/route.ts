@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
-// FedHybrid-AI 서버 설정
-const FEDHYBRID_SERVER_URL = process.env.FEDHYBRID_SERVER_URL || 'http://localhost:8000';
+// FedHybrid-AI 서버 설정 (기본 포트를 8082로 변경)
+const FEDHYBRID_SERVER_URL = process.env.FEDHYBRID_SERVER_URL || 'http://localhost:8082';
 
 export async function GET(request: NextRequest) {
   try {

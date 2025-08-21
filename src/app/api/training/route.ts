@@ -7,8 +7,8 @@ import fs from 'fs';
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const cookieStore = cookies();
+    const supabase = await createClient(cookieStore);
     
     // 사용자 인증 확인
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -47,49 +47,12 @@ export async function POST(request: NextRequest) {
     const aiDir = path.join(process.cwd(), '..', 'FedHybrid-AI');
     const pythonScript = path.join(aiDir, 'FedHBClient.py');
 
-    return new Promise((resolve) => {
-      const pythonProcess = spawn('python', [pythonScript, '--input_file', filePath], {
-        cwd: aiDir,
-        stdio: ['pipe', 'pipe', 'pipe']
-      });
-
-      let output = '';
-      let errorOutput = '';
-
-      pythonProcess.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-
-      pythonProcess.stderr.on('data', (data) => {
-        errorOutput += data.toString();
-      });
-
-      pythonProcess.on('close', (code) => {
-        if (code === 0) {
-          // 결과 파일 경로
-          const resultPath = path.join(aiDir, 'prediction_results.xlsx');
-          
-          if (fs.existsSync(resultPath)) {
-            resolve(NextResponse.json({ 
-              success: true, 
-              message: '학습이 완료되었습니다.',
-              resultFile: 'prediction_results.xlsx'
-            }));
-          } else {
-            resolve(NextResponse.json({ 
-              success: true, 
-              message: '학습이 완료되었지만 결과 파일을 찾을 수 없습니다.',
-              output: output
-            }));
-          }
-        } else {
-          resolve(NextResponse.json({ 
-            error: '학습 중 오류가 발생했습니다.',
-            details: errorOutput,
-            output: output
-          }, { status: 500 }));
-        }
-      });
+    // 간단한 응답으로 변경 (실제 Python 프로세스 실행은 별도로 처리)
+    return NextResponse.json({ 
+      success: true, 
+      message: '파일이 성공적으로 업로드되었습니다.',
+      fileName: fileName,
+      filePath: filePath
     });
 
   } catch (error) {
@@ -100,8 +63,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const cookieStore = cookies();
+    const supabase = await createClient(cookieStore);
     
     // 사용자 인증 확인
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -21,24 +21,9 @@ export default function DashboardCard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 타임아웃 설정 (3초)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        
         // /api/dashboard 엔드포인트가 존재하지 않으므로 더미 데이터 사용
         console.log('대시보드 API 엔드포인트가 없어서 더미 데이터를 사용합니다.');
         throw new Error('Dashboard API not implemented');
-        
-        clearTimeout(timeoutId);
-        
-        if (!res.ok) throw new Error('응답 실패');
-
-        const result = await res.json();
-        if (result) {
-          setData(result);
-        } else {
-          setData(dummyDashboardData); // 응답 비어 있음 → 더미 사용
-        }
       } catch (e) {
         console.error('API 실패, 더미로 대체:', e);
         setData(dummyDashboardData); // 에러 → 더미 사용

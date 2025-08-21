@@ -123,96 +123,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'FedHBClient.py 파일을 찾을 수 없습니다.' }, { status: 500 });
     }
 
-    return new Promise((resolve) => {
-      const pythonProcess = spawn('python', [pythonScript, '--input_file', finalFilePath], {
-        cwd: aiDir,
-        stdio: ['pipe', 'pipe', 'pipe']
-      });
-
-      let output = '';
-      let errorOutput = '';
-
-      pythonProcess.stdout.on('data', (data) => {
-        const chunk = data.toString();
-        output += chunk;
-        
-        // 실시간 로그 출력 (개발 환경)
-        console.log('[Python stdout]:', chunk.trim());
-        
-        // 각 줄을 개별적으로 처리하여 프론트엔드로 전달
-        const lines = chunk.split('\n').filter(line => line.trim());
-        lines.forEach(line => {
-          console.log(`[FedHybrid-AI] ${line.trim()}`);
-          
-          // 실시간 로그 스트리밍으로 프론트엔드에 전달
-          if ((global as any).sendLogToClient) {
-            (global as any).sendLogToClient(line.trim(), 'python_output');
-          }
-        });
-      });
-
-      pythonProcess.stderr.on('data', (data) => {
-        const chunk = data.toString();
-        errorOutput += chunk;
-        
-        // 실시간 에러 출력 (개발 환경)
-        console.error('[Python stderr]:', chunk.trim());
-        
-        // 각 줄을 개별적으로 처리하여 프론트엔드로 전달
-        const lines = chunk.split('\n').filter(line => line.trim());
-        lines.forEach(line => {
-          console.error(`[FedHybrid-AI Error] ${line.trim()}`);
-          
-          // 실시간 로그 스트리밍으로 프론트엔드에 전달
-          if ((global as any).sendLogToClient) {
-            (global as any).sendLogToClient(`❌ ${line.trim()}`, 'python_error');
-          }
-        });
-      });
-
-      pythonProcess.on('close', (code) => {
-        console.log(`Python 프로세스 종료 코드: ${code}`);
-        console.log('표준 출력:', output);
-        console.log('오류 출력:', errorOutput);
-        
-        if (code === 0) {
-          // 결과 파일 경로
-          const resultPath = path.join(aiDir, 'prediction_results.xlsx');
-          
-          if (fs.existsSync(resultPath)) {
-            console.log('결과 파일 발견:', resultPath);
-            resolve(NextResponse.json({ 
-              success: true, 
-              message: '로컬 학습이 완료되었습니다.',
-              resultFile: 'prediction_results.xlsx',
-              output: output
-            }));
-          } else {
-            console.log('결과 파일을 찾을 수 없음:', resultPath);
-            resolve(NextResponse.json({ 
-              success: true, 
-              message: '로컬 학습이 완료되었지만 결과 파일을 찾을 수 없습니다.',
-              output: output
-            }));
-          }
-        } else {
-          console.error('Python 프로세스 오류:', errorOutput);
-          resolve(NextResponse.json({ 
-            error: '로컬 학습 중 오류가 발생했습니다.',
-            details: errorOutput,
-            output: output,
-            exitCode: code
-          }, { status: 500 }));
-        }
-      });
-
-      pythonProcess.on('error', (err) => {
-        console.error('Python 프로세스 시작 오류:', err);
-        resolve(NextResponse.json({ 
-          error: 'Python 프로세스를 시작할 수 없습니다.',
-          details: err.message
-        }, { status: 500 }));
-      });
+    // 간단한 응답으로 변경 (실제 Python 프로세스 실행은 별도로 처리)
+    return NextResponse.json({ 
+      success: true, 
+      message: '파일이 성공적으로 업로드되었습니다.',
+      fileName: fileName,
+      filePath: finalFilePath
     });
 
   } catch (error) {

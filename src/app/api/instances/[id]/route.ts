@@ -1,19 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server';
 import { authorize } from "@/lib/supabase/authHelpers";
 
 /** 소유 인스턴스 갱신 전 정보 불러오기 */
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);
   const { granted, response: errRes, user } = await authorize(request, supabase);
   if (!granted) return errRes;
 
-  const id = params.id;
+  const { id } = await params;
 
   const { data, error } = await supabase
     .from("instances")
@@ -34,7 +34,7 @@ export async function GET(
 }
 
 /** 소유 인스턴스 갱신 */
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     // supabase 연결 및 인가
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
@@ -45,7 +45,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json();
     const { name, ip_address, port } = body;
     const owner_id = user.id;
-    const id = params.id;
+    const { id } = await params;
 
     // 인스턴스 갱신
     const { data, error } = await supabase
@@ -62,7 +62,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 /** 소유 인스턴스 삭제 */
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     // supabase 연결 및 인가
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
@@ -70,7 +70,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     if (!granted) return errRes;
 
     // URL 파라미터 획득
-    const id = params.id;
+    const { id } = await params;
 
     // 인스턴스 삭제
     const { data, error } = await supabase.from("instances").delete().eq('id', id);

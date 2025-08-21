@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       const heartbeatInterval = setInterval(() => {
         try {
           const heartbeat = `data: ${JSON.stringify({ 
-            message: '💓 연결 상태 확인',
+            message: '연결 상태 확인',
             timestamp: new Date().toISOString(),
             type: 'heartbeat'
           })}\n\n`;
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Python 프로세스의 실시간 출력을 스트리밍하는 함수 (향후 사용)
-export function streamPythonProcess(pythonScript: string, args: string[]) {
+function streamPythonProcess(pythonScript: string, args: string[]) {
   return new ReadableStream({
     start(controller) {
       const aiDir = path.join(process.cwd(), '..', 'FedHybrid-AI');
@@ -103,9 +103,9 @@ export function streamPythonProcess(pythonScript: string, args: string[]) {
       // 표준 출력 스트리밍
       pythonProcess.stdout.on('data', (data) => {
         const output = data.toString();
-        const lines = output.split('\n').filter(line => line.trim());
+        const lines = output.split('\n').filter((line: string) => line.trim());
         
-        lines.forEach(line => {
+        lines.forEach((line: string) => {
           try {
             const message = `data: ${JSON.stringify({ 
               message: line,
@@ -122,9 +122,9 @@ export function streamPythonProcess(pythonScript: string, args: string[]) {
       // 표준 에러 스트리밍
       pythonProcess.stderr.on('data', (data) => {
         const output = data.toString();
-        const lines = output.split('\n').filter(line => line.trim());
+        const lines = output.split('\n').filter((line: string) => line.trim());
         
-        lines.forEach(line => {
+        lines.forEach((line: string) => {
           try {
             const message = `data: ${JSON.stringify({ 
               message: `🚨 ${line}`,

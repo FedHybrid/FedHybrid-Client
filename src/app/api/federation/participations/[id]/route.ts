@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server';
 import { authorize } from "@/lib/supabase/authHelpers";
 
 /** 내 연합의 참여자 갱신 */
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     // supabase 연결 및 인가
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
@@ -52,7 +52,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 /** 내 연합의 참여자 삭제 */
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     // supabase 연결 및 인가
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
@@ -60,9 +60,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     if (!granted) return errRes;
 
     // URL 파라미터 획득
-    const participation_id = params.id;
-    // const { id: participation_id } = await params;
-    // console.log(participation_id);
+    const { id: participation_id } = await params;
 
     // 삭제 시엔 연합 정보 굳이 조회하지 않고 바로 삭제함
     const { data, error } = await supabase.from("participations").delete().eq('id', participation_id);
