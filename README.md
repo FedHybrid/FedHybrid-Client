@@ -1,9 +1,30 @@
+<div align="center">
+  
+<img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=200&section=header&text=FedHybrid&fontSize=56" width="100%"/>
+
+</div>
+
+## ✨ 프로젝트 소개
+
 ```
 FedHybrid는 Federated Learning + Hybrid 에서 유래하여, 기존 연합 학습 (FL) 분야의
 이론들을 통합하여 상용화 목적에 부합하는 최적의 AI 연합 학습 환경 개발을 목표로 합니다.
 ```
 
 [![Watch the video](https://github.com/user-attachments/assets/c15441e0-71f6-49f0-807d-ed69e968725e)](https://youtu.be/MOwfVM7K7Wc?si=TjV8VLWX4CYSCrjR)
+> 화면을 클릭하시면 프로젝트 소개 영상으로 넘어갑니다!
+
+<br/>
+
+## 👋 팀원 소개
+
+| 이름                                        | 전공        | 역할 | Email                |
+| -------------------------------------------- | -------------- | ------ | -------------------- |
+| [정영호](https://github.com/Young-Ho-Boss) | 융합보안학과 | AI | dudgh0314@naver.com |
+| [김수현](https://github.com/gitsuhyun) | 컴퓨터공학전공 | FE | suhyun10201@naver.com |
+| [김지우](https://github.com/ryann1203) | 컴퓨터공학전공 | FE | 2022110421@dgu.ac.kr |
+| [장재혁](https://github.com/34-43) | 컴퓨터공학전공 | BE | jehyuck3443@gmail.com |
+
 
 ## 🌟 프로젝트 주요 기능
 
@@ -47,6 +68,14 @@ FedHybrid는 Federated Learning + Hybrid 에서 유래하여, 기존 연합 학�
 
 </div>
 <br/>
+
+## 🧩 ARCHITECTURE
+
+### 1. 전체 아키텍쳐 구조
+<img width="1920" height="1080" src="https://github.com/user-attachments/assets/34c9570e-ced9-4aa1-9fe0-9e999a4664d3" />
+
+### 2. AI 아키텍쳐 구조
+<img width="1920" height="1080" src="https://github.com/user-attachments/assets/b4f1ed5c-f170-4ad2-b0a8-f3630f9e53b2" />
 
 ## 🔗 FedHybrid-AI 연동 설정
 
@@ -120,14 +149,6 @@ npm run dev
 ```  
 
 <br/>
-
-## 🧩 ARCHITECTURE
-
-### 1. 전체 아키텍쳐 구조
-<img width="1920" height="1080" src="https://github.com/user-attachments/assets/34c9570e-ced9-4aa1-9fe0-9e999a4664d3" />
-
-### 2. AI 아키텍쳐 구조
-<img width="1920" height="1080" src="https://github.com/user-attachments/assets/b4f1ed5c-f170-4ad2-b0a8-f3630f9e53b2" />
 
 ## 📌 CONVENTION
 
