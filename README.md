@@ -25,6 +25,7 @@ FedHybrid는 Federated Learning + Hybrid 에서 유래하여, 기존 연합 학�
 | [김지우](https://github.com/ryann1203) | 컴퓨터공학전공 | FE | 2022110421@dgu.ac.kr |
 | [장재혁](https://github.com/34-43) | 컴퓨터공학전공 | BE | jehyuck3443@gmail.com |
 
+<br/>
 
 ## 🌟 프로젝트 주요 기능
 
