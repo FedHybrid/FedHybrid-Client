@@ -122,9 +122,12 @@ npm run dev
 <br/>
 
 ## 🧩 ARCHITECTURE
-<img width="1920" height="1080" src="https://github.com/user-attachments/assets/b4f1ed5c-f170-4ad2-b0a8-f3630f9e53b2" />
 
-<br/>
+### 1. 전체 아키텍쳐 구조
+<img width="1920" height="1080" src="https://github.com/user-attachments/assets/34c9570e-ced9-4aa1-9fe0-9e999a4664d3" />
+
+### 2. AI 아키텍쳐 구조
+<img width="1920" height="1080" src="https://github.com/user-attachments/assets/b4f1ed5c-f170-4ad2-b0a8-f3630f9e53b2" />
 
 ## 📌 CONVENTION
 
